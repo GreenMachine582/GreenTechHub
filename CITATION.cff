@@ -1,0 +1,8 @@
+cff-version: "0.0.1"
+date-released: 2025-01
+message: "If you use this software, please cite it using these metadata."
+title: "GreenTechHub: Serves to showcase innovative projects, explore a curated library of games, and access embedded services that enhance user experiences."
+url: "https://github.com/GreenMachine582/GreenTechHub"
+authors:
+  - family-names: Johnson
+    given-names: Matthew

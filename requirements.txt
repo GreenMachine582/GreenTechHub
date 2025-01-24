@@ -1,0 +1,13 @@
+asgiref==3.8.1
+beautifulsoup4==4.12.3
+certifi==2024.7.4
+charset-normalizer==3.4.1
+Django==4.2.17
+django-bootstrap-v5==1.0.11
+idna==3.10
+psycopg2==2.9.10
+psycopg2-binary==2.9.10
+soupsieve==2.6
+sqlparse==0.5.3
+tzdata==2024.2
+urllib3==2.3.0

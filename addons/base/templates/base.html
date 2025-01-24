@@ -39,6 +39,41 @@
       <i class="fas fa-bars-staggered toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
+    <nav class="header-nav ms-auto">
+      <ul class="d-flex align-items-center">
+
+        <li class="nav-item dropdown pe-3">
+
+          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+            <img src="{% static '/img/green-machine-user.jpg' %}" alt="Profile" class="rounded-circle">
+          </a><!-- End Profile Iamge Icon -->
+
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+
+            {% if user.is_authenticated == False %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center" href="/login/">
+                  <i class="fas fa-right-to-bracket"></i>
+                  <span>Login</span>
+                </a>
+              </li>
+            {% endif %}
+
+            {% if user.is_authenticated == True %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center" href="/logout/">
+                  <i class="fas fa-right-from-bracket"></i>
+                  <span>Sign Out</span>
+                </a>
+              </li>
+            {% endif %}
+
+          </ul><!-- End Profile Dropdown Items -->
+        </li><!-- End Profile Nav -->
+
+      </ul>
+    </nav><!-- End Icons Navigation -->
+
   </header><!-- End Header -->
 
   <!-- ======= Sidebar ======= -->

@@ -8,5 +8,23 @@
       </a>
     </li><!-- End Home Nav -->
 
+    <li class="nav-heading">Admin</li>
+
+    {% if user.is_authenticated == False %}
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="/register">
+          <i class="fas fa-user-plus"></i>
+          <span>Register</span>
+        </a>
+      </li><!-- End Register Page Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="/login">
+          <i class="fas fa-user"></i>
+          <span>Login</span>
+        </a>
+      </li><!-- End Login Page Nav -->
+    {% endif %}
+
   </ul>
 </aside>

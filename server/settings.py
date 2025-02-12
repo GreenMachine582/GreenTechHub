@@ -152,3 +152,6 @@ STATICFILES_DIRS = [
 # else:  # Production collected static files
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# User session expiry
+SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days

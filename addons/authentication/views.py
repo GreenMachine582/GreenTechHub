@@ -23,9 +23,16 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        remember_me = bool(request.POST.get('remember_me'))
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+
+            if remember_me:
+                request.session.set_expiry(getattr(settings, "SESSION_REMEMBER_ME_SECS", 60 * 60 * 24 * 30))  # 30 days
+            else:
+                request.session.set_expiry(60 * 60)  # 1 hr
+
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password.")

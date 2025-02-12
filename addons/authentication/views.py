@@ -1,4 +1,5 @@
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -43,4 +44,4 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     messages.success(request, "You have been logged out.")
-    return redirect("home")
+    return redirect("login")

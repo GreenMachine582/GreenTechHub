@@ -2,7 +2,7 @@
   <ul class="sidebar-nav" id="sidebar-nav">
 
     <li class="nav-item">
-      <a class="nav-link active" href="/home">
+      <a class="nav-link {% if site_path == '/home/' %}active{% else %}collapsed{% endif %}" href="/home/">
         <i class="fas fa-house"></i>
         <span>Home</span>
       </a>
@@ -12,14 +12,14 @@
 
     {% if user.is_authenticated == False %}
       <li class="nav-item">
-        <a class="nav-link collapsed" href="/register">
+        <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="/register/">
           <i class="fas fa-user-plus"></i>
           <span>Register</span>
         </a>
       </li><!-- End Register Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="/login">
+        <a class="nav-link {% if site_path == '/login/' %}active{% else %}collapsed{% endif %}" href="/login/">
           <i class="fas fa-user"></i>
           <span>Login</span>
         </a>

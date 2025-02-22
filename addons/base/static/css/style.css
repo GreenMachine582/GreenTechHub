@@ -629,6 +629,15 @@ h6 {
   .sidebar {
     left: -300px;
   }
+
+  #main,
+  #footer {
+    margin-left: 0;
+  }
+
+  .toggle-sidebar-btn {
+    display: none;
+  }
 }
 
 .sidebar::-webkit-scrollbar {

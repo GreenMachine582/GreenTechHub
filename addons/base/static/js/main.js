@@ -34,19 +34,30 @@
   /**
    * Sidebar toggle
    */
-  if (select('.toggle-sidebar-btn')) {
-    on('click', '.toggle-sidebar-btn', function(e) {
-      select('body').classList.toggle('toggle-sidebar')
+  if (select('.icon-sidebar-toggle')) {
+    on('click', '.icon-sidebar-toggle', function(e) {
+      // TODO: update to store preference to signed in user
+      let sidebarState = localStorage.getItem("sidebarState") || "open";
 
-      // Toggle icon class
-      const icon = select('.toggle-sidebar-btn');
-      if (icon.classList.contains('fa-bars')) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-bars-staggered');
-      } else {
-        icon.classList.remove('fa-bars-staggered');
-        icon.classList.add('fa-bars');
+      // Determine new state after click action
+      if (sidebarState === "close") {
+        sidebarState = "open"
+      } else if (sidebarState === "open") {
+        sidebarState = "icons-only"
+      } else if (sidebarState === "icons-only") {
+        sidebarState = "close"
       }
+
+      // Add classes for the CSS to dynamically adjust DOM/styles
+      const icon = select('.icon-sidebar-toggle');
+      const sidebar = select('.sidebar');
+      icon.classList.toggle("fa-bars-staggered", sidebarState === "open")
+      icon.classList.toggle("fa-bars", sidebarState === "icons-only")
+      icon.classList.toggle("fa-not-equal", sidebarState === "close")
+      sidebar.classList.toggle("sidebar-close", sidebarState === "close")
+      sidebar.classList.toggle("sidebar-open", sidebarState === "open")
+      sidebar.classList.toggle("sidebar-icons-only", sidebarState === "icons-only")
+      localStorage.setItem("sidebarState", sidebarState);
     })
   }
 

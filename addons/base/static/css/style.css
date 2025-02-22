@@ -3,6 +3,8 @@
 --------------------------------------------------------------*/
 :root {
   scroll-behavior: smooth;
+  --sidebar-width: 300px;
+  --sidebar-icons-width: 88px;
 }
 
 body {
@@ -379,7 +381,7 @@ h6 {
   /* Search Bar */
 }
 
-.header .toggle-sidebar-btn {
+.header .icon-sidebar-toggle {
   font-size: 32px;
   padding-left: 10px;
   cursor: pointer;
@@ -594,7 +596,7 @@ h6 {
   top: 60px;
   left: 0;
   bottom: 0;
-  width: 300px;
+  width: var(--sidebar-width);
   z-index: 996;
   transition: all 0.3s ease-in-out;
   padding: 20px;
@@ -625,17 +627,58 @@ h6 {
   }
 }
 
+.sidebar.sidebar-open {
+  width: var(--sidebar-width);
+}
+
+.sidebar.sidebar-icons-only {
+  width: var(--sidebar-icons-width);
+  position: fixed;
+}
+
+.sidebar.sidebar-close {
+  width: 0;
+  display: none;
+}
+
+.sidebar.sidebar-icons-only .sidebar-nav li a span {
+  display: none;
+}
+
+#main, #footer {
+  transition: margin-left 0.3s ease-in-out;
+  margin-left: var(--sidebar-width);
+}
+
+/* Full sidebar */
+.sidebar-open ~ #main,
+.sidebar-open ~ #footer {
+  margin-left: var(--sidebar-width);
+}
+
+/* Icons-only sidebar */
+.sidebar-icons-only ~ #main,
+.sidebar-icons-only ~ #footer {
+  margin-left: var(--sidebar-icons-width);
+}
+
+/* Sidebar hidden */
+.sidebar-close ~ #main,
+.sidebar-close ~ #footer {
+  margin-left: 0;
+}
+
 @media (max-width: 1199px) {
   .sidebar {
-    left: -300px;
+    display: none;
   }
 
   #main,
   #footer {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
 
-  .toggle-sidebar-btn {
+  .icon-sidebar-toggle {
     display: none;
   }
 }
@@ -648,32 +691,6 @@ h6 {
 
 .sidebar::-webkit-scrollbar-thumb {
   background-color: #aab7cf;
-}
-
-@media (min-width: 1200px) {
-
-  #main,
-  #footer {
-    margin-left: 300px;
-  }
-}
-
-@media (max-width: 1199px) {
-  .toggle-sidebar .sidebar {
-    left: 0;
-  }
-}
-
-@media (min-width: 1200px) {
-
-  .toggle-sidebar #main,
-  .toggle-sidebar #footer {
-    margin-left: 0;
-  }
-
-  .toggle-sidebar .sidebar {
-    left: -300px;
-  }
 }
 
 .sidebar-nav {

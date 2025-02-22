@@ -693,6 +693,12 @@ h6 {
   background-color: #aab7cf;
 }
 
+@media (min-width: 500px) {
+  .logo span {
+    display: inline !important;
+  }
+}
+
 .sidebar-nav {
   padding: 0;
   margin: 0;

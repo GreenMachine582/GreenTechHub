@@ -13,6 +13,7 @@ def user_register(request):
         kwargs.pop('csrfmiddlewaretoken', None)
         try:
             new_user = User.objects.create_user(**kwargs)
+            login(request, new_user)  # Sign user in after registration
             messages.success(request, "Your account has been created successfully!")
             return redirect("home")
         except Exception as e:

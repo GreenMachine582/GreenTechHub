@@ -602,6 +602,7 @@ h6 {
   overflow-y: auto;
   box-shadow: 0 0 20px rgba(1, 41, 112, 0.1);
   background-color: #fff;
+  flex-direction: column;
 }
 
 /* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
@@ -701,6 +702,13 @@ h6 {
   padding: 0;
   margin: 0;
   list-style: none;
+  flex-grow: 1;
+}
+
+.sidebar-nav-bottom {
+  bottom: 20px;
+  position: absolute;
+  width: calc(100% - 40px);
 }
 
 .sidebar-nav li {

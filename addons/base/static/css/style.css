@@ -3,6 +3,8 @@
 --------------------------------------------------------------*/
 :root {
   scroll-behavior: smooth;
+  --sidebar-width: 300px;
+  --sidebar-icons-width: 88px;
 }
 
 body {
@@ -372,14 +374,14 @@ h6 {
   transition: all 0.5s;
   z-index: 997;
   height: 60px;
-  box-shadow: 0px 2px 20px rgba(1, 41, 112, 0.1);
+  box-shadow: 0 2px 20px rgba(1, 41, 112, 0.1);
   background-color: #fff;
   padding-left: 20px;
   /* Toggle Sidebar Button */
   /* Search Bar */
 }
 
-.header .toggle-sidebar-btn {
+.header .icon-sidebar-toggle {
   font-size: 32px;
   padding-left: 10px;
   cursor: pointer;
@@ -398,7 +400,7 @@ h6 {
     left: 0;
     right: 0;
     padding: 20px;
-    box-shadow: 0px 0px 15px 0px rgba(1, 41, 112, 0.1);
+    box-shadow: 0 0 15px 0 rgba(1, 41, 112, 0.1);
     background: white;
     z-index: 9999;
     transition: 0.3s;
@@ -418,7 +420,6 @@ h6 {
 }
 
 .header .search-form input {
-  border: 0;
   font-size: 14px;
   color: #012970;
   border: 1px solid rgba(1, 41, 112, 0.2);
@@ -594,20 +595,90 @@ h6 {
   top: 60px;
   left: 0;
   bottom: 0;
-  width: 300px;
+  width: var(--sidebar-width);
   z-index: 996;
-  transition: all 0.3s;
+  transition: all 0.3s ease-in-out;
   padding: 20px;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #aab7cf transparent;
-  box-shadow: 0px 0px 20px rgba(1, 41, 112, 0.1);
+  box-shadow: 0 0 20px rgba(1, 41, 112, 0.1);
   background-color: #fff;
+  flex-direction: column;
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+.sidebar::-webkit-scrollbar {
+  width: 6px; /* Adjust width */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #aab7cf;
+  border-radius: 3px;
+}
+
+/* For Firefox (scrollbar-width is ignored in Safari) */
+@supports (scrollbar-width: thin) {
+  .sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: #aab7cf transparent;
+  }
+}
+
+.sidebar.sidebar-open {
+  width: var(--sidebar-width);
+}
+
+.sidebar.sidebar-icons-only {
+  width: var(--sidebar-icons-width);
+}
+
+.sidebar.sidebar-close {
+  width: 0;
+  display: none;
+}
+
+.sidebar.sidebar-icons-only .sidebar-nav li a span {
+  display: none;
+}
+
+#main, #footer {
+  transition: margin-left 0.3s ease-in-out;
+  margin-left: var(--sidebar-width);
+}
+
+/* Full sidebar */
+.sidebar-open ~ #main,
+.sidebar-open ~ #footer {
+  margin-left: var(--sidebar-width);
+}
+
+/* Icons-only sidebar */
+.sidebar-icons-only ~ #main,
+.sidebar-icons-only ~ #footer {
+  margin-left: var(--sidebar-icons-width);
+}
+
+/* Sidebar hidden */
+.sidebar-close ~ #main,
+.sidebar-close ~ #footer {
+  margin-left: 0;
 }
 
 @media (max-width: 1199px) {
   .sidebar {
-    left: -300px;
+    display: none;
+  }
+
+  #main,
+  #footer {
+    margin-left: 0 !important;
+  }
+
+  .icon-sidebar-toggle {
+    display: none;
   }
 }
 
@@ -621,29 +692,9 @@ h6 {
   background-color: #aab7cf;
 }
 
-@media (min-width: 1200px) {
-
-  #main,
-  #footer {
-    margin-left: 300px;
-  }
-}
-
-@media (max-width: 1199px) {
-  .toggle-sidebar .sidebar {
-    left: 0;
-  }
-}
-
-@media (min-width: 1200px) {
-
-  .toggle-sidebar #main,
-  .toggle-sidebar #footer {
-    margin-left: 0;
-  }
-
-  .toggle-sidebar .sidebar {
-    left: -300px;
+@media (min-width: 500px) {
+  .logo span {
+    display: inline !important;
   }
 }
 
@@ -651,6 +702,13 @@ h6 {
   padding: 0;
   margin: 0;
   list-style: none;
+  flex-grow: 1;
+}
+
+.sidebar-nav-bottom {
+  bottom: 20px;
+  position: absolute;
+  width: calc(100% - 40px);
 }
 
 .sidebar-nav li {
@@ -677,7 +735,7 @@ h6 {
   font-size: 15px;
   font-weight: 600;
   color: #4154f1;
-  transition: 0.3;
+  transition: 0.3s;
   background: #f6f9ff;
   padding: 10px 15px;
   border-radius: 4px;
@@ -728,7 +786,6 @@ h6 {
   font-size: 14px;
   font-weight: 600;
   color: #012970;
-  transition: 0.3;
   padding: 10px 0 10px 40px;
   transition: 0.3s;
 }
@@ -755,7 +812,7 @@ h6 {
 /* Filter dropdown */
 .dashboard .filter {
   position: absolute;
-  right: 0px;
+  right: 0;
   top: 15px;
 }
 
@@ -1125,7 +1182,6 @@ h6 {
   border-radius: 0;
   box-shadow: none;
   font-size: 14px;
-  border-radius: 0;
 }
 
 .contact .php-email-form input:focus,

@@ -138,6 +138,10 @@ ADDONS_APPS = [
     for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "apps.py").exists()
 ]
 INSTALLED_APPS += ADDONS_APPS
+TEMPLATES[0]['OPTIONS']['context_processors'] += [
+    f"addons.{app.name}.context_processors.default_context"
+    for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "context_processors.py").exists()
+]
 
 # Additional directories for static files from each app
 STATICFILES_DIRS = [
@@ -155,3 +159,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
+
+APPEND_SLASH = True

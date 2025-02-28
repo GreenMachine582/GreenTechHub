@@ -47,6 +47,9 @@ jobs:
           # Test SSH connection
           ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST "echo '✅ SSH Connection Successful'"
       - name: Run Deployment Commands
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST << 'EOF'
             set -e  # Exit immediately if any command fails
@@ -54,7 +57,7 @@ jobs:
             echo "🚀 Starting deployment on EC2..."
           
             # Navigate to project directory
-            cd /home/ubuntu/GreenTechHub
+            cd /home/$EC2_USERNAME/GreenTechHub
           
             # Ensure the latest code is pulled
             git pull origin main

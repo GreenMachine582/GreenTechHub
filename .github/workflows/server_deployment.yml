@@ -45,10 +45,10 @@ jobs:
           ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
           
           # Test SSH connection
-          ssh -i ~/.ssh/github_key.pem $EC2_USERNAME@$EC2_HOST "echo '✅ SSH Connection Successful'"
+          ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST "echo '✅ SSH Connection Successful'"
       - name: Run Deployment Commands
         run: |
-          ssh -i ~/.ssh/github_key.pem $EC2_USERNAME@$EC2_HOST << 'EOF'
+          ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST << 'EOF'
             set -e  # Exit immediately if any command fails
           
             echo "🚀 Starting deployment on EC2..."

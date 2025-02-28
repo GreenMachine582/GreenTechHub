@@ -57,7 +57,7 @@ jobs:
             echo "🚀 Starting deployment on EC2..."
           
             # Navigate to project directory
-            cd /home/$EC2_USERNAME/GreenTechHub
+            cd ~/GreenTechHub
           
             # Ensure the latest code is pulled
             git pull origin main

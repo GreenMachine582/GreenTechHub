@@ -42,6 +42,10 @@ jobs:
             StrictHostKeyChecking no
           END
       - name: Run Deploy
+        env:
+          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           ssh target << 'EOF'
             set -e  # Exit on any error

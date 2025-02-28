@@ -29,34 +29,51 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
+          # Ensure required environment variables are set
+          if [[ -z "$EC2_PRIVATE_KEY" || -z "$EC2_HOST" || -z "$EC2_USERNAME" ]]; then
+            echo "❌ Missing EC2 secrets. Ensure EC2_PRIVATE_KEY, EC2_HOST, and EC2_USERNAME are set."
+            exit 1
+          fi
+          
           # Set up SSH key and agent
           mkdir -p ~/.ssh/
           echo "$EC2_PRIVATE_KEY" > ~/.ssh/github
           chmod 600 ~/.ssh/github
           
-          cat >>~/.ssh/config <<END
-          Host target
-            HostName $EC2_HOST
-            User $EC2_USERNAME
-            IdentityFile ~/.ssh/github
-            StrictHostKeyChecking no
-          END
-      - name: Run Deploy
-        env:
-          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          # Add EC2 host to known hosts (avoids interactive prompt)
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          
+          # Test SSH connection
+          ssh -i ~/.ssh/github_key.pem $EC2_USERNAME@$EC2_HOST "echo '✅ SSH Connection Successful'"
+      - name: Run Deployment Commands
         run: |
-          ssh target << 'EOF'
-            set -e  # Exit on any error
-            echo "Connected to EC2 instance"
+          ssh -i ~/.ssh/github_key.pem $EC2_USERNAME@$EC2_HOST << 'EOF'
+            set -e  # Exit immediately if any command fails
+          
+            echo "🚀 Starting deployment on EC2..."
+          
+            # Navigate to project directory
             cd /home/ubuntu/GreenTechHub
+          
+            # Ensure the latest code is pulled
             git pull origin main
+          
+            # Activate virtual environment and install dependencies
             source venv/bin/activate
             pip install -r requirements.txt
-            echo "Requirements installed"
+            echo "📦 Requirements installed"
+          
+            # Collect static files
             python server.py collectstatic --noinput
-            echo "Static files collected"
+            echo "🗂️ Static files collected"
+          
+            # Restart the service
+            sudo systemctl daemon-reload
+            sudo systemctl restart greentechhub.service
+          
+            # Verify service status
+            sudo systemctl status greentechhub.service --no-pager
+            echo "✅ Deployment completed successfully"
           EOF
 
 #          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts

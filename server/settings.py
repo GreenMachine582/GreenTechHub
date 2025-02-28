@@ -25,7 +25,7 @@ load_dotenv()
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -155,12 +156,13 @@ STATICFILES_DIRS = [
 ]
 
 # Compiled static files destination
-# if DEBUG:
-#     STATIC_ROOT = ''
-#     MEDIA_ROOT = ''
-# else:  # Production collected static files
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_ROOT = BASE_DIR / 'media'
+if DEBUG:
+    STATIC_ROOT = ''
+    MEDIA_ROOT = ''
+else:  # Production collected static files
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+    MEDIA_ROOT = BASE_DIR / 'media'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days

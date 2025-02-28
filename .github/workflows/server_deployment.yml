@@ -1,0 +1,60 @@
+name: Server Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: main
+  cancel-in-progress: true
+
+jobs:
+#  general-tests:
+#    name: General Tests
+#    uses: ./.github/workflows/general_tests.yml
+
+  deploy:
+    name: Deploy to EC2
+#    needs: general-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure SSH and Deploy
+        env:
+          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+        run: |
+          # Set up SSH key and agent
+          mkdir -p ~/.ssh/
+          echo "$EC2_PRIVATE_KEY" > ~/.ssh/github
+          chmod 600 ~/.ssh/github
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          
+          # Deploy to EC2
+          ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST << 'EOF'
+            set -e  # Exit on any error
+            echo "Connected to EC2 instance"
+
+            # Navigate to project directory
+            cd /home/ubuntu/GreenTechHub
+
+            # Ensure latest code is pulled
+            git pull origin main
+
+            # Activate virtual environment and install dependencies
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            # Collect static files
+            python server.py collectstatic --noinput
+
+            # Restart application service
+            #sudo systemctl daemon-reload
+            #sudo systemctl restart greentechhub.service
+            #sudo systemctl status greentechhub.service --no-pager
+          EOF

@@ -41,6 +41,19 @@ jobs:
             IdentityFile ~/.ssh/github
             StrictHostKeyChecking no
           END
+      - name: Run Deploy
+        run: |
+          ssh target << 'EOF'
+            set -e  # Exit on any error
+            echo "Connected to EC2 instance"
+            cd /home/ubuntu/GreenTechHub
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            echo "Requirements installed"
+            python server.py collectstatic --noinput
+            echo "Static files collected"
+          EOF
 
 #          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 #

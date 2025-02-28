@@ -1,5 +1,3 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +9,7 @@
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="{% static '/img/logo.png' %}" rel="icon">
+  <link href="/static/img/logo.png" rel="icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -21,10 +19,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
 
   <!-- Package CSS Files -->
-  <link href="{% static '/packages/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="/static/packages/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Template Main CSS File -->
-  <link href="{% static '/css/style.css' %}" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
 
@@ -33,7 +31,7 @@
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="/home/" class="logo d-flex align-items-center">
-        <img src="{% static '/img/logo.png' %}" alt="">
+        <img src="/static/img/logo.png" alt="">
         <span class="d-none d-lg-block">GreenTechHub</span>
       </a>
       <i class="fas fa-bars-staggered icon-sidebar-toggle"></i>
@@ -45,7 +43,7 @@
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="{% static '/img/green-machine-user.jpg' %}" alt="Profile" class="rounded-circle">
+            <img src="/static/img/green-machine-user.jpg" alt="Profile" class="rounded-circle">
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
@@ -106,6 +104,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Template Main JS File -->
-  <script src="{% static '/js/main.js' %}"></script>
+  <script src="/static/js/main.js"></script>
 </body>
 </html>

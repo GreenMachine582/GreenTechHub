@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Markers - GreenTechHub
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Markers</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item">Mapify</li>
+        <li class="breadcrumb-item active">Markers</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section marker">
+    <a href="/mapify/marker/form" class="btn btn-primary">Add</a>
+    <table class="table mt-3">
+      <thead><tr><th>Name</th><th>Latitude</th><th>Longitude</th><th>Icon</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.name }}</td>
+          <td>{{ record.latitude }}</td>
+          <td>{{ record.longitude }}</td>
+          <td><a href="/mapify/marker-icon/form/{{ record.icon.id }}">{{ record.icon.colour }}-{{ record.icon.icon }}</a></td>
+          <td>
+            <a href="/mapify/marker/form/{{ record.id }}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="/mapify/marker/delete/{{ record.id }}" class="btn btn-sm btn-danger">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

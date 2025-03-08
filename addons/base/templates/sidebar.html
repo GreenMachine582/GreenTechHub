@@ -10,6 +10,28 @@
 
     <li class="nav-heading">Admin</li>
 
+    {% if user.is_authenticated == True %}
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/mapify/marker-icon/list/' %}active{% else %}collapsed{% endif %}" href="/mapify/marker-icon/list/">
+          <i class="fas fa-location-pin"></i>
+          <span>Marker Icons</span>
+        </a>
+      </li><!-- End Marker Icon Page Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/mapify/marker/list/' %}active{% else %}collapsed{% endif %}" href="/mapify/marker/list/">
+          <i class="fas fa-location-dot"></i>
+          <span>Markers</span>
+        </a>
+      </li><!-- End Marker Page Nav -->
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/mapify/place/list/' %}active{% else %}collapsed{% endif %}" href="/mapify/place/list/">
+          <i class="fas fa-location-dot"></i>
+          <span>Places</span>
+        </a>
+      </li><!-- End Place Page Nav -->
+    {% endif %}
+
     {% if user.is_authenticated == False %}
       <li class="nav-item">
         <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="/register/">

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if record %}Edit{% else %}Add{% endif %} Marker - GreenTechHub
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Marker</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="/mapify/marker/list/">Markers</a></li>
+        <li class="breadcrumb-item active">Marker</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section marker">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="latitude" class="form-label">Latitude</label>
+        <input type="text" id="latitude" name="latitude" class="form-control" value="{{ form.latitude.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="longitude" class="form-label">Longitude</label>
+        <input type="text" id="longitude" name="longitude" class="form-control" value="{{ form.longitude.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="icon" class="form-label">Icon</label>
+        <select id="icon" name="icon" class="form-control" required>
+          {% for icon in icons %}
+            <option value="{{ icon.id }}" {% if form.icon.id == icon.id %}selected{% endif %}>{{ icon.colour }} - {{ icon.icon }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if form.instance.pk %}
+        <button type="submit" class="btn btn-success">Save</button>
+      {% else %}
+        <button type="submit" class="btn btn-primary">Create</button>
+      {% endif %}
+
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </form>
+  </section>
+{% endblock %}

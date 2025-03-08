@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if record %}Edit{% else %}Add{% endif %} Marker Icon - GreenTechHub
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Marker Icon</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="/mapify/marker-icon/list/">Marker Icons</a></li>
+        <li class="breadcrumb-item active">Marker Icon</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section marker-icon">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="colour" class="form-label">Colour</label>
+        <input type="text" id="colour" name="colour" class="form-control" value="{{ form.colour.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="icon" class="form-label">Icon</label>
+        <input type="text" id="icon" name="icon" class="form-control" value="{{ form.icon.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="prefix" class="form-label">Prefix</label>
+        <input type="text" id="prefix" name="prefix" class="form-control" value="{{ form.prefix.value|default:'' }}" required>
+      </div>
+      {% if form.instance.pk %}
+        <button type="submit" class="btn btn-success">Save</button>
+      {% else %}
+        <button type="submit" class="btn btn-primary">Create</button>
+      {% endif %}
+
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </form>
+  </section>
+{% endblock %}

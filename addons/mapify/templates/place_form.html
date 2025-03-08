@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if record %}Edit{% else %}Add{% endif %} Place - GreenTechHub
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Place</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="/mapify/Place/list/">Places</a></li>
+        <li class="breadcrumb-item active">Place</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section place">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="link" class="form-label">Link</label>
+        <input type="text" id="link" name="link" class="form-control" value="{{ form.link.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="display_name" class="form-label">Name</label>
+        <input type="text" id="display_name" name="display_name" class="form-control" value="{{ form.display_name.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="open_time" class="form-label">Open Time</label>
+        <input type="text" id="open_time" name="open_time" class="form-control" value="{{ form.open_time.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="close_time" class="form-label">Close Time</label>
+        <input type="text" id="close_time" name="close_time" class="form-control" value="{{ form.close_time.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="latitude" class="form-label">Latitude</label>
+        <input type="text" id="latitude" name="latitude" class="form-control" value="{{ form.latitude.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="longitude" class="form-label">Longitude</label>
+        <input type="text" id="longitude" name="longitude" class="form-control" value="{{ form.longitude.value }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="marker" class="form-label">Marker</label>
+        <select id="marker" name="marker" class="form-control" required>
+          {% for marker in markers %}
+            <option value="{{ marker.id }}" {% if form.marker.id == marker.id %}selected{% endif %}>{{ marker.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if form.instance.pk %}
+        <button type="submit" class="btn btn-success">Save</button>
+      {% else %}
+        <button type="submit" class="btn btn-primary">Create</button>
+      {% endif %}
+
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </form>
+  </section>
+{% endblock %}

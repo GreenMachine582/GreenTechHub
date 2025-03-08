@@ -10,6 +10,15 @@
 
     <li class="nav-heading">Admin</li>
 
+    {% if user.is_authenticated == True %}
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/users/profile/' %}active{% else %}collapsed{% endif %}" href="/users/profile/">
+          <i class="fas fa-user-pen"></i>
+          <span>Profile</span>
+        </a>
+      </li><!-- End Profile Page Nav -->
+    {% endif %}
+
     {% if user.is_authenticated == False %}
       <li class="nav-item">
         <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="/register/">

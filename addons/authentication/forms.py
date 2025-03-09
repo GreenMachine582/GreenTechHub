@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from ..base import widgets
+
 import re
 
 
@@ -32,7 +34,7 @@ class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(
         label=_("Password"),
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        widget=widgets.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": "Jo4Do3"}),
         help_text=password_validation.password_validators_help_text_html(),
     )
 

@@ -29,7 +29,7 @@
               <form class="row g-3 needs-validation" method="post" novalidate>
                 {% csrf_token %}
                 <div class="col-12">
-                  <label for="firstName" class="form-label">Name</label>
+                  <label for="firstName" class="form-label">Name:</label>
 
                   <div class="row align-items-start">
                     <div class="col">
@@ -42,12 +42,12 @@
                 </div>
 
                 <div class="col-12">
-                  <label for="email" class="form-label">Email</label>
+                  <label for="email" class="form-label">Email:</label>
                   <input type="email" name="email" class="form-control" id="email" placeholder="Joe.Doe@gmail.com"/>
                 </div>
 
                 <div class="col-12">
-                  <label for="yourUsername" class="form-label">Username</label>
+                  <label for="yourUsername" class="form-label">Username:</label>
                   <div class="input-group has-validation">
                     <span class="input-group-text" id="inputGroupPrepend">@</span>
                     <input type="text" name="username" class="form-control" id="yourUsername" placeholder="JohnDoe123" required/>
@@ -55,8 +55,8 @@
                 </div>
 
                 <div class="col-12">
-                  <label for="yourPassword" class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" id="yourPassword" placeholder="Jo4nDo3" required/>
+                  {{ form.password.label_tag }}
+                  {{ form.password }}
                 </div>
 
                 <div class="col-12">

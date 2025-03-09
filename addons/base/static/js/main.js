@@ -1,7 +1,15 @@
 import {select, on, onscroll} from "./helpers.js";
+import {BootstrapPassword} from "./widgets/bootstrap_password.js";
 import {Sidebar} from "./sidebar.js";
 
 Sidebar.init();
+
+/**
+ * Bootstrap Widgets
+ */
+
+BootstrapPassword.init();
+
 
 (function() {
   "use strict";

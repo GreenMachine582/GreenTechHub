@@ -1,7 +1,7 @@
 
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -30,6 +30,33 @@ def validate_password_strength(value):
 
 
 class UserRegistrationForm(forms.ModelForm):
+
+    username_validator = UnicodeUsernameValidator()
+
+    username = forms.CharField(
+        label=_("Username"),
+        max_length=150,
+        widget=widgets.TextInput(attrs={"placeholder": "JoeDoe123"}),
+        help_text=_(
+            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[username_validator],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
+    )
+    first_name = forms.CharField(
+        label=_("First Name"), max_length=150,
+        widget=widgets.TextInput(attrs={"placeholder": "Joe"}),
+    )
+    last_name = forms.CharField(
+        label=_("Last Name"), max_length=150,
+        widget=widgets.TextInput(attrs={"placeholder": "Doe"}),
+    )
+    email = forms.EmailField(
+        label=_("Email"),
+        widget=widgets.EmailInput(attrs={"placeholder": "Joe.Doe@gmail.com"}),
+    )
 
     password = forms.CharField(
         label=_("Password"),

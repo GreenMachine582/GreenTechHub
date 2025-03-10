@@ -8,11 +8,7 @@ export const BootstrapPassword = (() => {
     const password = icon.previousElementSibling;
 
     const showPassword = password.getAttribute("type") === "password";
-    if (showPassword) {
-      password.setAttribute("type", "text");
-    } else {
-      password.setAttribute("type", "password");
-    }
+    password.setAttribute("type", showPassword ? "text" : "password");
     icon.firstElementChild.classList.toggle("fa-eye-slash", showPassword === false);
     icon.firstElementChild.classList.toggle("fa-eye", showPassword === true);
 

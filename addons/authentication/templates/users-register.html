@@ -29,21 +29,20 @@
               <form class="row g-3 needs-validation" method="post" novalidate>
                 {% csrf_token %}
                 <div class="col-12">
-                  <label for="firstName" class="form-label">Name:</label>
-
+                  <label class="form-label">Name:</label>
                   <div class="row align-items-start">
                     <div class="col">
-                      <input type="text" name="first_name" class="form-control" id="firstName" placeholder="Joe">
+                     {{ form.first_name }}
                     </div>
                     <div class="col">
-                      <input type="text" name="last_name" class="form-control" id="lastName" placeholder="Doe">
+                     {{ form.last_name }}
                     </div>
                   </div>
                 </div>
 
                 <div class="col-12">
-                  <label for="email" class="form-label">Email:</label>
-                  <input type="email" name="email" class="form-control" id="email" placeholder="Joe.Doe@gmail.com"/>
+                  {{ form.email.label_tag }}
+                  {{ form.email }}
                 </div>
 
                 <div class="col-12">

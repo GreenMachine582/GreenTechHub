@@ -67,7 +67,15 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "username",]
+        fields = ["first_name", "last_name", "email", "username", "password"]
+
+    def save(self, commit=True):
+        """Save user with hashed password."""
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Hash password
+        if commit:
+            user.save()
+        return user
 
     def clean_username(self):
         """Reject usernames that differ only in case."""

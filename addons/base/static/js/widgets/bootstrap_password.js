@@ -14,6 +14,17 @@ export const BootstrapPassword = (() => {
 
   }
 
+  const scoreStrength = (password) => {
+    let strength = 0;
+    let targetLength = 8;  // Preferably 12 characters or more
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+    strength += Math.min(Math.floor(password.length / (targetLength / 4)), 4);  // Up to 4 points for length
+    return strength;
+  }
+
   const strengthChecker = () => {
     const strengthBar = select('.strength-bar');
     const icon = select('.password-view-toggle');
@@ -21,13 +32,7 @@ export const BootstrapPassword = (() => {
     const passwordValue = password.value;
 
     let maxStrength = 8;
-    let strength = 0;
-    let minLength = 12;  // Preferably 12 characters or more
-    if (/[A-Z]/.test(passwordValue)) strength++;
-    if (/[a-z]/.test(passwordValue)) strength++;
-    if (/\d/.test(passwordValue)) strength++;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(passwordValue)) strength++;
-    strength += Math.min(Math.floor(passwordValue.length / (minLength / 4)), 4);  // Up to 4 points for length
+    let strength = scoreStrength(passwordValue);
 
     const strengthBarMeter = strengthBar.firstElementChild;
     strengthBarMeter.style.width = `${strength * (100 / maxStrength)}%`;
@@ -60,6 +65,7 @@ export const BootstrapPassword = (() => {
   return {
     init,
     togglePasswordVisibility,
+    scoreStrength,
     strengthChecker
   };
 })();

@@ -36,7 +36,7 @@ class UserRegistrationForm(forms.ModelForm):
     username = forms.CharField(
         label=_("Username"),
         max_length=150,
-        widget=widgets.TextInput(attrs={"placeholder": "JoeDoe123"}),
+        widget=widgets.TextInput(attrs={"placeholder": "JoeDoe123"}, prepend="@"),
         help_text=_(
             "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
         ),

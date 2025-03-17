@@ -256,6 +256,15 @@ h6 {
   font-size: 20px;
 }
 
+.alert {
+  display: inline-flex;
+  width: 100%;
+}
+
+.alert i {
+  margin: 2px 10px 0 0;
+}
+
 /* Close Button */
 .btn-close {
   background-size: 25%;

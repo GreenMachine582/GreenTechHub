@@ -2,7 +2,21 @@
   {% for message in messages %}
     <div class="alert alert-{% if message.tags == 'info' %}primary{% elif message.tags == 'error' %}danger
     {% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-      {{message|safe}}
+      <!-- Icon based on message type -->
+      {% if message.tags == 'success' %}
+        <i class="fas fa-circle-check me-2"></i>
+      {% elif message.tags == 'info' %}
+        <i class="fas fa-circle-info me-2"></i>
+      {% elif message.tags == 'warning' %}
+        <i class="fas fa-circle-exclamation me-2"></i>
+      {% elif message.tags == 'error' %}
+        <i class="fas fa-bomb me-2"></i>
+      {% else %}
+        <i class="fas fa-bell me-2"></i> <!-- Default icon -->
+      {% endif %}
+      <span>
+        {{message|safe}}
+      </span>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   {% endfor %}

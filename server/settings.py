@@ -39,6 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
     'bootstrap5',
 ]
 
@@ -132,6 +138,42 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 ################
+# AllAuth      #
+################
+
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+MIDDLEWARE += [
+    'allauth.account.middleware.AccountMiddleware',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GOGGLE"),
+            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GOGGLE"),
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'METHOD': 'oauth2',
+        'VALIDATE_EMAIL': True,
+    },
+    'github': {
+        'APP': {
+            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GITHUB"),
+            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GITHUB"),
+        },
+    }
+}
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
+LOGIN_REDIRECT_URL = '/'
+
+################
 # Custom       #
 ################
 
@@ -167,4 +209,5 @@ else:  # Production collected static files
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
 
+X_FRAME_OPTIONS = "SAMEORIGIN"
 APPEND_SLASH = True

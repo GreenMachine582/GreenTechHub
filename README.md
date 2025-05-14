@@ -73,16 +73,11 @@ docker-compose down
 After the initial startup, you may want to run database migrations and create an admin user:
 
 ```bash
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py createsuperuser
+docker-compose exec greentechhub python server.py migrate
+docker-compose exec greentechhub python server.py createsuperuser
 ```
 
-### 5. Rebuild Without Cache (If Needed)
-```bash
-docker-compose build --no-cache
-```
-
-### 6. View Logs
+### 5. View Logs
 ```bash
 docker-compose logs -f
 ```

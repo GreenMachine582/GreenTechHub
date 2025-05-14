@@ -1,0 +1,19 @@
+services:
+
+  greentechhub:
+    build: .
+    container_name: greentechhub
+    command: python server.py runserver 000.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - greentechhub_net
+
+networks:
+  greentechhub_net:
+    name: greentechhub_network
+    driver: bridge

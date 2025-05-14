@@ -7,6 +7,7 @@
 - [Introduction](#introduction)
 - [Key Features](#key-features)
 - [Milestones](#milestones)
+- [Docker](#docker)
 - [License](#license)
 
 ---
@@ -43,6 +44,49 @@ creator, GreenTechHub is your space to thrive.
   - Introduced API access for external integrations.
   - Enhanced embedded services with new tools for developers.
   - Implemented user dashboards for project analytics.
+
+## Docker
+
+To get started with running GreenTechHub in a Docker environment:
+
+### 1. Build the Base Image
+
+```bash
+docker build -f Dockerfile.python -t pybase:3.11 .
+```
+
+### 2. Start the Application
+This command will build and start all required services in detached mode:
+
+```bash
+docker-compose up --build -d
+```
+
+### 3. Stop and Remove Containers
+To shut down the services and remove containers:
+
+```bash
+docker-compose down
+```
+
+### 4. Run Migrations & Create Superuser (Optional)
+After the initial startup, you may want to run database migrations and create an admin user:
+
+```bash
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py createsuperuser
+```
+
+### 5. Rebuild Without Cache (If Needed)
+```bash
+docker-compose build --no-cache
+```
+
+### 6. View Logs
+```bash
+docker-compose logs -f
+```
+> **NOTE:** If you're using environment variables (e.g. .env), ensure that your docker-compose.yml is configured to use them properly.
 
 ## License
 GreenTechHub is licensed under the MIT License, see [LICENSE](LICENSE) for more information.

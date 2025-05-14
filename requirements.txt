@@ -11,6 +11,7 @@ python-dotenv==1.0.1
 PyJWT==2.8.0
 psycopg2==2.9.10
 psycopg2-binary==2.9.10
+requests==2.32.3
 soupsieve==2.6
 sqlparse==0.5.3
 tzdata==2024.2

@@ -6,6 +6,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.html import escape
 from django.views.generic import FormView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .forms import UserRegistrationForm
 
@@ -60,3 +63,16 @@ def user_logout(request):
     logout(request)
     messages.success(request, "You have been logged out.")
     return redirect("login")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def userinfo(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })

@@ -1,4 +1,13 @@
 services:
+  db:
+    image: postgres:16
+    container_name: greentechhub_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - greentechhub_net
 
   greentechhub:
     build: .
@@ -8,6 +17,8 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    depends_on:
+      - db
     env_file:
       - .env
     networks:
@@ -17,3 +28,7 @@ networks:
   greentechhub_net:
     name: greentechhub_network
     driver: bridge
+
+volumes:
+  postgres_data:
+    name: greentechhub_postgres_data

@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:16
     container_name: greentechhub_db
+    ports:
+      - "5431:5432"  # host:container
     env_file:
       - .env
     volumes:

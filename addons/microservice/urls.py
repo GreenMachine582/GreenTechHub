@@ -4,5 +4,5 @@ from . import views
 
 
 urlpatterns = [
-    re_path(r'^(?P<service>[a-zA-Z0-9_-]+)/(?P<path>.*)$', views.MicroserviceProxyView.as_view()),
+    re_path(r'^api/(?P<service>[a-zA-Z0-9_-]+)/(?P<path>.*)$', views.MicroserviceProxyView.as_view()),
 ]

@@ -4,7 +4,6 @@ import requests
 from django.http import HttpResponse
 from urllib.parse import urljoin
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound, APIException
 
@@ -12,7 +11,7 @@ from .models import Microservice
 
 _logger = logging.getLogger(__name__)
 
-#TODO: restrict proxy access to specific user roles or groups, or log usage by user
+#TODO: add log/audit usage by user
 
 # Create your views here.
 
@@ -25,10 +24,15 @@ class MicroserviceProxyView(APIView):
         return super().dispatch(request, *args, **kwargs)
 
     def handle_request(self, request):
+        user = request.user
         try:
             service = Microservice.objects.get(prefix=self.service_prefix, is_active=True)
         except Microservice.DoesNotExist:
             raise NotFound(detail=f'Microservice "{self.service_prefix}" not found or inactive')
+
+        # Ensure user has access to the API group
+        if not user.hasGroups(user, '_'.join((self.service_prefix, 'api'))):
+            raise APIException(detail=f'User does not have access to the "{self.service_prefix}_api" group')
 
         target_url = urljoin(service.base_url.rstrip('/') + '/', self.path.lstrip('/'))
         _logger.debug(f"[{request.method}] Proxying to: {target_url}")
@@ -39,7 +43,6 @@ class MicroserviceProxyView(APIView):
         }
 
         # Add Authorization header if authenticated
-        user = request.user
         if hasattr(user, 'is_authenticated') and user.is_authenticated:
             # Add custom header with authenticated user's ID
             headers["X-User-ID"] = str(request.user.id)

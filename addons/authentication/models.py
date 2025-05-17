@@ -23,6 +23,16 @@ class GroupProfile(models.Model):
         except Group.DoesNotExist:
             return None
 
+    @staticmethod
+    def createGroupAndProfile(group_name: str, description: str):
+        group, created = Group.objects.get_or_create(name=group_name)
+
+        profile, _ = GroupProfile.objects.get_or_create(group=group)
+        if created:
+            profile.description = description
+            profile.save()
+        return profile
+
 
 class Role(models.Model):
     name = models.CharField(max_length=50, unique=True)

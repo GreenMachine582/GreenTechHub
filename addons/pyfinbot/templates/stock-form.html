@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if record %}Edit{% else %}Add{% endif %} Stock - PyFinBot
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Stock</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="/pyfinbot/stock/list/">Stocks</a></li>
+        <li class="breadcrumb-item active">Stock</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section stock">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="symbol" class="form-label">Symbol</label>
+        <input type="text" id="symbol" name="symbol" class="form-control" value="{{ form.symbol.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="market" class="form-label">Market</label>
+        <input type="text" id="market" name="market" class="form-control" value="{{ form.market.value|default:'' }}" required>
+      </div>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+      </div>
+      {% if form.instance.id %}
+        <button type="submit" class="btn btn-success">Save</button>
+      {% else %}
+        <button type="submit" class="btn btn-primary">Create</button>
+      {% endif %}
+
+      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+    </form>
+  </section>
+{% endblock %}

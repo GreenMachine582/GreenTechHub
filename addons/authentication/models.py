@@ -46,3 +46,15 @@ class Role(models.Model):
 
 class User(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+
+    def hasGroups(self, code_name: str, *code_names: tuple[str]) -> bool:
+        user_group_ids = set(self.groups.values_list('id', flat=True))
+        if self.role:
+            user_group_ids |= set(self.role.groups.values_list('id', flat=True))
+
+        code_names = (code_name,) + code_names
+        for code_name in code_names:
+            group = GroupProfile.get_group_by_code_name(code_name)
+            if group and (group.id in user_group_ids):
+                return True
+        return False

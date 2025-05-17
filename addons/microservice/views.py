@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import logging
 
 import requests
 from django.http import HttpResponse
-from urllib.parse import urljoin
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound, APIException
@@ -25,53 +26,65 @@ class MicroserviceProxyView(APIView):
 
     def handle_request(self, request):
         user = request.user
+        self._validate_user_permissions(user)
+
+        service = self._get_microservice_or_404()
+        headers = self._prepare_headers(request)
+
+        target_url = service.buildUrl(self.path)
+
         try:
-            service = Microservice.objects.get(prefix=self.service_prefix, is_active=True)
+            _logger.debug(f"[{request.method}] Proxying to: {target_url}")
+            proxied_response = service.request('', target_url, request.method, user, request.GET, request.body,
+                                               headers)
+            return self._build_django_response(proxied_response)
+        except Exception as e:
+            _logger.exception(f"Proxy error for {target_url}")
+            raise APIException(detail=str(e))
+
+    def _get_microservice_or_404(self):
+        try:
+            return Microservice.objects.get(prefix=self.service_prefix, is_active=True)
         except Microservice.DoesNotExist:
             raise NotFound(detail=f'Microservice "{self.service_prefix}" not found or inactive')
 
-        # Ensure user has access to the API group
-        if not user.hasGroups(user, '_'.join((self.service_prefix, 'api'))):
-            raise APIException(detail=f'User does not have access to the "{self.service_prefix}_api" group')
+    def _validate_user_permissions(self, user):
+        group_name = f"{self.service_prefix}_api"
+        if not user.hasGroups(user, group_name):
+            raise APIException(detail=f'User does not have access to the "{group_name}" group')
 
-        target_url = urljoin(service.base_url.rstrip('/') + '/', self.path.lstrip('/'))
-        _logger.debug(f"[{request.method}] Proxying to: {target_url}")
-
+    def _prepare_headers(self, request):
         headers = {
             k: v for k, v in request.headers.items()
             if k.lower() != 'host'
         }
 
-        # Add Authorization header if authenticated
+        user = request.user
         if hasattr(user, 'is_authenticated') and user.is_authenticated:
-            # Add custom header with authenticated user's ID
-            headers["X-User-ID"] = str(request.user.id)
-            auth = request.META.get("HTTP_AUTHORIZATION")
-            if auth:
-                headers["Authorization"] = auth
+            headers["X-User-ID"] = str(user.id)
+            if "HTTP_AUTHORIZATION" in request.META:
+                headers["Authorization"] = request.META["HTTP_AUTHORIZATION"]
 
-        if request.method not in ["POST", "PUT", "PATCH"]:
-            headers.pop('Content-Length', None)
-            headers.pop('Content-Type', None)
+        return headers
 
-        try:
-            proxied_response = requests.request(
-                method=request.method,
-                url=target_url,
-                headers=headers,
-                params=request.GET,
-                data=request.body if request.method in ["POST", "PUT", "PATCH"] else None,
-                timeout=10,
-            )
+    @staticmethod
+    def _make_proxy_request(method, url, headers, params, data):
+        return requests.request(
+            method=method,
+            url=url,
+            headers=headers,
+            params=params,
+            data=data,
+            timeout=10
+        )
 
-            return HttpResponse(
-                proxied_response.content,
-                status=proxied_response.status_code,
-                content_type=proxied_response.headers.get('Content-Type', 'application/json')
-            )
-        except Exception as e:
-            _logger.exception(f"Proxy error for {target_url}")
-            raise APIException(detail=str(e))
+    @staticmethod
+    def _build_django_response(proxied_response):
+        return HttpResponse(
+            proxied_response.content,
+            status=proxied_response.status_code,
+            content_type=proxied_response.headers.get('Content-Type', 'application/json')
+        )
 
     def get(self, request, *args, **kwargs):
         return self.handle_request(request)

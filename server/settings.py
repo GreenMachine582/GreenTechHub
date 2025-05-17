@@ -175,6 +175,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 # ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
 LOGIN_REDIRECT_URL = '/'
+AUTH_USER_MODEL = 'authentication.User'
 
 
 ################

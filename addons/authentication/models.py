@@ -1,3 +1,38 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser, Permission, Group
 
 # Create your models here.
+
+class GroupProfile(models.Model):
+    group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name='profile')
+    description = models.TextField(blank=True)
+    code_name = models.CharField(max_length=50, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.code_name and self.group.name:
+            self.code_name = self.group.name.lower().replace(' ', '_')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.group.name} ({self.code_name})"
+
+    @staticmethod
+    def get_group_by_code_name(code_name: str):
+        try:
+            return Group.objects.get(profile__code_name=code_name)
+        except Group.DoesNotExist:
+            return None
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+    permissions = models.ManyToManyField(Permission, blank=True)
+    groups = models.ManyToManyField(Group, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class User(AbstractUser):
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')

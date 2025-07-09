@@ -57,14 +57,21 @@
                 </div>
               </form>
 
-              <div class="divider"></div>
-              <a href="{% provider_login_url 'google' %}">
-                <button class="btn btn-danger w-100"><i class="fab fa-google"></i> Login with Google</button>
-              </a>
-              <a href="{% provider_login_url 'github' %}">
-                <button class="btn btn-dark w-100"><i class="fab fa-github"></i> Login with GitHub</button>
-              </a>
-
+              <div class="text-divider">or</div>
+              <div class="mt-4">
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'google' %}" class="btn btn-social w-100 google" title="Login with Google">
+                    <i class="fab fa-google"></i>
+                    <span class="btn-text">Google</span>
+                  </a>
+                </div>
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'github' %}" class="btn btn-social w-100 github" title="Login with Github">
+                    <i class="fab fa-github"></i>
+                    <span class="btn-text">Github</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

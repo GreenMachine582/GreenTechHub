@@ -79,7 +79,7 @@ class Microservice(models.Model):
             return resp
         except Exception as e:
             _logger.exception(f"Internal proxy error to {target_url}; {e}")
-            raise None
+            raise
 
     @staticmethod
     def microserviceRequest(

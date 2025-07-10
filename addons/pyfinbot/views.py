@@ -24,7 +24,13 @@ class StockListView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        response = Microservice.microserviceRequest('pyfinbot', '/stocks/', method='GET', user=self.request.user)
+        try:
+            response = Microservice.microserviceRequest('pyfinbot', '/stocks/', method='GET',
+                                                        user=self.request.user)
+        except Exception:
+            _logger.exception("Failed to fetch stock records")
+            messages.error(self.request, "Failed to load stock records.")
+            response = None
         context['records'] = [] if not response else response.json()
         return context
 
@@ -44,7 +50,13 @@ class StockFormView(FormView):
         kwargs = super().get_form_kwargs()
         record_id = self.kwargs.get("record_id")
         if record_id:
-            response = Microservice.microserviceRequest('pyfinbot', f'/stocks/{record_id}', method='GET', user=self.request.user)
+            try:
+                response = Microservice.microserviceRequest('pyfinbot', f'/stocks/{record_id}',
+                                                            method='GET', user=self.request.user)
+            except Exception:
+                _logger.exception("Failed to fetch stock record")
+                messages.error(self.request, "Failed to load record.")
+                response = None
             if not response:
                 messages.error(self.request, response.json().get("detail") or "Failed to load record.")
             kwargs['initial'] = response.json()
@@ -56,8 +68,13 @@ class StockFormView(FormView):
         return context
 
     def form_valid(self, form):
-        response = Microservice.microserviceRequest('pyfinbot', f'/stocks', method='POST',
-                                                    user=self.request.user, json=form.cleaned_data)
+        try:
+            response = Microservice.microserviceRequest('pyfinbot', f'/stocks', method='POST',
+                                                        user=self.request.user, json=form.cleaned_data)
+        except Exception:
+            _logger.exception("Failed to save stock record")
+            messages.error(self.request, "Failed to save record.")
+            return super().form_invalid(form)
         if response.status_code != 200 and response.json():
             error_message = response.json().get("detail") or "Failed to save record."
             messages.error(self.request, error_message)
@@ -83,8 +100,13 @@ def stock_delete(request, record_id):
         messages.error(request, "Session has expired.")
         return redirect("home")
 
-    response = Microservice.microserviceRequest('pyfinbot', f'/stocks/{record_id}', method='DELETE',
-                                                user=request.user)
+    try:
+        response = Microservice.microserviceRequest('pyfinbot', f'/stocks/{record_id}',
+                                                    method='DELETE', user=request.user)
+    except Exception:
+        _logger.exception("Failed to delete stock record")
+        messages.error(request, "Failed to delete record.")
+        return redirect("pyfinbot-stock-list")
     if not response.ok and response.json():
         error_message = response.json().get("detail") or "Failed to delete record."
         messages.error(request, error_message)

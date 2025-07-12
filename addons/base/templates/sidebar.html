@@ -8,9 +8,19 @@
       </a>
     </li><!-- End Home Nav -->
 
-    <li class="nav-heading">Admin</li>
+<!--    #TODO: restrict access to this page unless the user has group pyfinbot_user; maybe add all group code names into context?-->
+    {% if user.is_authenticated %}
+      <li class="nav-heading">PyFinBot</li>
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/pyfinbot/stock/list/' %}active{% else %}collapsed{% endif %}" href="/pyfinbot/stock/list/">
+          <i class="fas fa-user-plus"></i>
+          <span>Stock</span>
+        </a>
+      </li><!-- End Stock Page Nav -->
+    {% endif %}
 
     {% if user.is_authenticated == False %}
+      <li class="nav-heading">Admin</li>
       <li class="nav-item">
         <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="/register/">
           <i class="fas fa-user-plus"></i>

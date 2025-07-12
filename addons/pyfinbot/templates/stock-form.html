@@ -34,7 +34,7 @@
         <label for="name" class="form-label">Name</label>
         <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
       </div>
-      {% if form.instance.id %}
+      {% if record_id %}
         <button type="submit" class="btn btn-success">Save</button>
       {% else %}
         <button type="submit" class="btn btn-primary">Create</button>

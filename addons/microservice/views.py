@@ -3,12 +3,17 @@ from __future__ import annotations
 import logging
 
 import requests
+
+from django.contrib import messages
 from django.http import HttpResponse
+from django.views.generic import TemplateView, FormView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound, APIException
 
+from .mixins import LoginRequiredMixin, MicroserviceMixin
 from .models import Microservice
+from .exceptions import MicroserviceError
 
 _logger = logging.getLogger(__name__)
 
@@ -100,3 +105,85 @@ class MicroserviceProxyView(APIView):
 
     def delete(self, request, *args, **kwargs):
         return self.handle_request(request)
+
+
+class BaseMicroserviceListView(LoginRequiredMixin, MicroserviceMixin, TemplateView):
+    """
+    Generic list-view for any microservice endpoint.
+    Subclasses must define:
+      - template_name (e.g. "stock-list.html")
+      - service_prefix  (e.g. "pyfinbot")
+      - list_path       (e.g. "/stocks/")
+      - context_object_name (default: "records")
+    """
+    context_object_name = "records"
+    list_path: str  # e.g. "/stocks/"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        try:
+            resp = self.getClient().request(
+                self.list_path, method="GET", user=self.request.user
+            )
+            ctx[self.context_object_name] = resp.json() or []
+        except MicroserviceError as e:
+            messages.error(self.request, f"Failed to load records: {e}")
+            ctx[self.context_object_name] = []
+        return ctx
+
+
+class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
+    """
+    Generic create/update form against a microservice.
+    Subclasses must define:
+      - form_class
+      - template_name
+      - success_url
+      - service_prefix
+      - create_path   (e.g. "/stocks/")
+      - update_path   (e.g. "/stocks/{id}/")
+    """
+    create_path: str    # e.g. "/stocks/"
+    update_path: str    # e.g. "/stocks/{id}/"
+
+    def get_initial(self):
+        initial = super().get_initial()
+        record_id = self.kwargs.get("record_id")
+        if record_id:
+            try:
+                resp = self.getClient().request(
+                    self.update_path.format(id=record_id),
+                    method="GET",
+                    user=self.request.user
+                )
+                initial.update(resp.json() or {})
+            except MicroserviceError as e:
+                messages.error(self.request, f"Failed to load record: {e}")
+        return initial
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["record_id"] = self.kwargs.get("record_id")
+        ctx["cancel_url"] = self.get_success_url()
+        return ctx
+
+    def form_valid(self, form):
+        record_id = self.kwargs.get("record_id")
+        if record_id:
+            path, method = self.update_path.format(id=record_id), "PUT"
+        else:
+            path, method = self.create_path, "POST"
+
+        try:
+            self.getClient().request(
+                path=path,
+                method=method,
+                user=self.request.user,
+                json=form.cleaned_data
+            )
+        except MicroserviceError as e:
+            messages.error(self.request, f"Failed to save record: {e}")
+            return self.form_invalid(form)
+
+        messages.success(self.request, "Record saved successfully.")
+        return super().form_valid(form)

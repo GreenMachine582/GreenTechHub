@@ -88,9 +88,9 @@ class MicroserviceClient:
             raise MicroserviceError(f"Unexpected error: {e}") from e
 
     @classmethod
-    def for_prefix(cls, prefix: str) -> "MicroserviceClient":
+    def forPrefix(cls, prefix: str) -> "MicroserviceClient":
         """Look up a Microservice by prefix & return a ready client."""
-        svc = Microservice.objects.get_by_prefix(prefix)
+        svc = Microservice.objects.getByPrefix(prefix)
         if not svc:
             raise MicroserviceError(f"No active microservice named '{prefix}'")
         return cls(svc)

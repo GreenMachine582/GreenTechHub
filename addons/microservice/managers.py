@@ -8,7 +8,7 @@ class MicroserviceQuerySet(models.QuerySet):
 
 
 class MicroserviceManager(models.Manager):
-    def get_by_prefix(self, prefix: str):
+    def getByPrefix(self, prefix: str):
         return (
             self.get_queryset()
                 .active()

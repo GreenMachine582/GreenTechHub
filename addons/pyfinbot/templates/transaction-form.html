@@ -24,17 +24,20 @@
 
       <div class="mb-3">
         <label for="symbol" class="form-label">Symbol</label>
-        <input type="text" id="symbol" name="symbol" class="form-control" value="{{ form.symbol.value|default:'' }}" required>
+        <input type="text" id="symbol" name="symbol" class="form-control" value="{{ form.symbol.value|default:'' }}"
+               required {% if record_id %} readonly {% endif %}>
       </div>
       <div class="mb-3">
         <label for="market" class="form-label">Market</label>
-        <input type="text" id="market" name="market" class="form-control" value="{{ form.market.value|default:'' }}" required>
+        <input type="text" id="market" name="market" class="form-control" value="{{ form.market.value|default:'' }}"
+               required {% if record_id %} readonly {% endif %}>
       </div>
       <div class="mb-3">
         <label for="name" class="form-label">Name</label>
-        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}" required>
+        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}"
+               required>
       </div>
-      {% if form.instance.id %}
+      {% if record_id %}
         <button type="submit" class="btn btn-success">Save</button>
       {% else %}
         <button type="submit" class="btn btn-primary">Create</button>

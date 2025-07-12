@@ -11,9 +11,10 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound, APIException
 
-from .mixins import LoginRequiredMixin, MicroserviceMixin
+from .mixins import MicroserviceMixin
 from .models import Microservice
 from .exceptions import MicroserviceError
+from ..authentication.mixins import LoginRequiredMixin
 
 _logger = logging.getLogger(__name__)
 

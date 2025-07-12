@@ -227,6 +227,8 @@ else:  # Production collected static files
 
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 APPEND_SLASH = True
+LOGIN_URL = '/login/'

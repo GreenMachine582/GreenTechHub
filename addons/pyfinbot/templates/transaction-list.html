@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Transactions - PyFinBot
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Transactions</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item">PyFinBot</li>
+        <li class="breadcrumb-item active">Transactions</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section transaction">
+    <a href="/pyfinbot/transaction/form" class="btn btn-primary">Add</a>
+    <table class="table mt-3">
+      <thead><tr><th>Symbol</th><th>Market</th><th>Name</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.symbol }}</td>
+          <td>{{ record.market }}</td>
+          <td>{{ record.name }}</td>
+          <td>
+            <a href="/pyfinbot/transaction/form/{{ record.id }}" class="btn btn-sm btn-warning">Edit</a>
+            <a href="/pyfinbot/transaction/delete/{{ record.id }}" class="btn btn-sm btn-danger">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

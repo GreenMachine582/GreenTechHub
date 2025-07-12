@@ -13,10 +13,16 @@
       <li class="nav-heading">PyFinBot</li>
       <li class="nav-item">
         <a class="nav-link {% if site_path == '/pyfinbot/stock/list/' %}active{% else %}collapsed{% endif %}" href="/pyfinbot/stock/list/">
-          <i class="fas fa-user-plus"></i>
+          <i class="fas fa-business-time"></i>
           <span>Stock</span>
         </a>
       </li><!-- End Stock Page Nav -->
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/pyfinbot/transaction/list/' %}active{% else %}collapsed{% endif %}" href="/pyfinbot/transaction/list/">
+          <i class="fas fa-right-left"></i>
+          <span>Transaction</span>
+        </a>
+      </li><!-- End Transaction Page Nav -->
     {% endif %}
 
     {% if user.is_authenticated == False %}

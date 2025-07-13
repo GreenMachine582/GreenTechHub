@@ -22,7 +22,7 @@ class MicroserviceClient:
         self.session.headers.update(DEFAULT_HEADERS)
 
     @staticmethod
-    def _prepare_headers(user):
+    def _prepareHeaders(user):
         hdrs = {}
         if user and getattr(user, "is_authenticated", False):
             hdrs["X-User-ID"] = str(user.id)
@@ -48,7 +48,7 @@ class MicroserviceClient:
     ) -> requests.Response:
         url = self.service.buildUrl(path)
         headers = dict(self.session.headers)
-        headers.update(self._prepare_headers(user))
+        headers.update(self._prepareHeaders(user))
         if extra_headers:
             headers.update(extra_headers)
 

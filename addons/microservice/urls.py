@@ -1,8 +1,8 @@
-from django.urls import re_path
+from django.urls import path
 
-from . import views
+from .views import MicroserviceProxyView
 
 
 urlpatterns = [
-    re_path(r'^api/(?P<service>[a-zA-Z0-9_-]+)/(?P<path>.*)$', views.MicroserviceProxyView.as_view()),
+    path('api/<str:service>/<path:path>', MicroserviceProxyView.as_view(), name='microservice-proxy'),
 ]

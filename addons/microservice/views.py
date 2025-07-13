@@ -6,6 +6,8 @@ import requests
 
 from django.contrib import messages
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.views import View
 from django.views.generic import TemplateView, FormView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -188,3 +190,28 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
 
         messages.success(self.request, "Record saved successfully.")
         return super().form_valid(form)
+
+
+class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
+    """
+    Deletes a single record via microservice and redirects.
+    Subclasses must set:
+      - service_prefix (e.g. "pyfinbot")
+      - delete_path   (e.g. "/stocks/{id}/")
+      - success_url   (could be reverse_lazy("…"))
+    """
+    delete_path: str    # URL template, e.g. "/stocks/{id}/"
+    success_url: str    # name or absolute URL
+
+    def post(self, request, *args, **kwargs):
+        record_id = kwargs.get("record_id")
+        try:
+            self.getClient().request(
+                path=self.delete_path.format(id=record_id),
+                method="DELETE",
+                user=request.user
+            )
+            messages.success(request, "Record deleted successfully.")
+        except MicroserviceError as e:
+            messages.error(request, f"Failed to delete record: {e}")
+        return redirect(self.success_url)

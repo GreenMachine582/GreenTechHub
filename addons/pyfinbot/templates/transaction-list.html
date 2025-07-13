@@ -30,7 +30,13 @@
           <td>{{ record.name }}</td>
           <td>
             <a href="/pyfinbot/transaction/form/{{ record.id }}" class="btn btn-sm btn-warning">Edit</a>
-            <a href="/pyfinbot/transaction/delete/{{ record.id }}" class="btn btn-sm btn-danger">Delete</a>
+            <form method="post" action="{% url 'pyfinbot-transaction-delete' record_id=record.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger"
+                      onclick="return confirm('Really delete this record?');">
+                Delete
+              </button>
+            </form>
           </td>
         </tr>
         {% endfor %}

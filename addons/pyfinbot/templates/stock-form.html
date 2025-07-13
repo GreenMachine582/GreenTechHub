@@ -19,6 +19,12 @@
 
 {% block main %}
   <section class="section stock">
+    {% if record_id %}
+      <form id="delete-form" method="post" action="{% url 'pyfinbot-stock-delete' record_id=record_id %}"
+            style="display: none;">
+        {% csrf_token %}
+      </form>
+    {% endif %}
     <form method="post" action="">
       {% csrf_token %}
 
@@ -39,11 +45,15 @@
       </div>
       {% if record_id %}
         <button type="submit" class="btn btn-success">Save</button>
+        <button type="submit" form="delete-form" class="btn btn-danger"
+                onclick="return confirm('Really delete this record?');">
+          Delete
+        </button>
       {% else %}
         <button type="submit" class="btn btn-primary">Create</button>
       {% endif %}
 
-      <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+      <a href="{{ cancel_url }}" class="btn btn-secondary">Cancel</a>
     </form>
   </section>
 {% endblock %}

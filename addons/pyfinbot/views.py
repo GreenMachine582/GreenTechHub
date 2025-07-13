@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
 from .forms import StockForm, TransactionForm
-from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceListView
+from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceListView, BaseMicroserviceDeleteView
 from ..microservice.services.client import MicroserviceClient, MicroserviceError
 
 _logger = logging.getLogger(__name__)
@@ -27,19 +27,10 @@ class StockFormView(BaseMicroserviceFormView):
     update_path = "/stocks/{id}/"
 
 
-def stock_delete(request, record_id):
-    if not request.user.is_authenticated:
-        messages.error(request, "Session has expired.")
-        return redirect("home")
-
-    try:
-        client = MicroserviceClient.forPrefix("pyfinbot")
-        _ = client.request(f"/stocks/{record_id}", method="DELETE", user=request.user)
-    except MicroserviceError as e:
-        messages.error(request, f"Failed to delete record, due to: '{e}'.")
-        return redirect("pyfinbot-stock-list")
-    messages.success(request, "Record deleted successfully.")
-    return redirect("pyfinbot-stock-list")
+class StockDeleteView(BaseMicroserviceDeleteView):
+    service_prefix = "pyfinbot"
+    delete_path = "/stocks/{id}/"
+    success_url = reverse_lazy("pyfinbot-stock-list")
 
 
 class TransactionListView(BaseMicroserviceListView):
@@ -58,16 +49,7 @@ class TransactionFormView(BaseMicroserviceFormView):
     update_path = "/transactions/{id}/"
 
 
-def transaction_delete(request, record_id):
-    if not request.user.is_authenticated:
-        messages.error(request, "Session has expired.")
-        return redirect("home")
-
-    try:
-        client = MicroserviceClient.forPrefix("pyfinbot")
-        _ = client.request(f"/transactions/{record_id}", method="DELETE", user=request.user)
-    except MicroserviceError as e:
-        messages.error(request, f"Failed to delete record, due to: '{e}'.")
-        return redirect("pyfinbot-transaction-list")
-    messages.success(request, "Record deleted successfully.")
-    return redirect("pyfinbot-transaction-list")
+class TransactionDeleteView(BaseMicroserviceDeleteView):
+    service_prefix = "pyfinbot"
+    delete_path = "/transactions/{id}/"
+    success_url = reverse_lazy("pyfinbot-transaction-list")

@@ -19,28 +19,88 @@
 
 {% block main %}
   <section class="section stock">
-    <a href="/pyfinbot/stock/form" class="btn btn-primary">Add</a>
-    <table class="table mt-3">
-      <thead><tr><th>Symbol</th><th>Market</th><th>Name</th><th>Actions</th></tr></thead>
-      <tbody>
-        {% for record in records %}
-        <tr>
-          <td>{{ record.symbol }}</td>
-          <td>{{ record.market }}</td>
-          <td>{{ record.name }}</td>
-          <td>
-            <a href="/pyfinbot/stock/form/{{ record.id }}" class="btn btn-sm btn-warning">Edit</a>
-            <form method="post" action="{% url 'pyfinbot-stock-delete' record_id=record.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Really delete this record?');">
-                Delete
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <a href="{% url 'pyfinbot-stock-form' %}" class="btn btn-primary mb-3">Add Stock</a>
+
+    <div
+      id="records-table"
+      data-path-template="{{ view.list_path }}"
+      style="height: 60vh;"
+    ></div>
   </section>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    // CSRF‐cookie reader
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(cookie => {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+          }
+        });
+      }
+      return cookieValue;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const csrftoken = getCookie('csrftoken');
+      const container = document.getElementById("records-table");
+      const path      = container.dataset.pathTemplate;    // e.g. "pyfinbot/stocks/"
+      const ajaxURL   = `/api/${path}`;
+
+      const table = new Tabulator(container, {
+        ajaxURL,
+        ajaxConfig: {
+          method: "GET",
+          credentials: "same-origin",
+          headers: { "X-CSRFToken": csrftoken }
+        },
+
+        pagination:     "remote",
+        paginationMode: "remote",
+        paginationSize: 50,
+
+        dataReceiveParams: {
+          data:      "items",  // array of rows
+          last_page: "pages",  // total # pages
+          last_row: "total" // overall row count (optional)
+        },
+
+      // once data is loaded into the table, log it
+      dataLoaded: (data) => {
+        console.log("[Tabulator] Data loaded:", data);
+      },
+
+        layout: "fitColumns",
+        placeholder: "No records found.",
+
+        columns: [
+          { title: "Symbol", sorter: "string", field: "symbol", headerFilter: "input" },
+          { title: "Market", sorter: "string", field: "market", headerFilter: "input" },
+          { title: "Name",   sorter: "string", field: "name",   headerFilter: "input" },
+          {
+            title: "Actions",
+            field: "id",
+            hozAlign: "center",
+            headerSort: false,
+            formatter: cell => {
+              const id = cell.getValue();
+              return `
+                <a href="/pyfinbot/stock/form/${id}" class="btn btn-sm btn-warning me-1">Edit</a>
+                <form method="post" action="/pyfinbot/stock/delete/${id}/" style="display:inline;">
+                  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                  <button type="submit" class="btn btn-sm btn-danger"
+                    onclick="return confirm('Really delete this record?');">Delete</button>
+                </form>
+              `;
+            }
+          },
+        ],
+      });
+    });
+  </script>
 {% endblock %}

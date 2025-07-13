@@ -1,6 +1,7 @@
 
 from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import APIException
 
 from .exceptions import MicroserviceError
@@ -12,6 +13,8 @@ class MicroserviceMixin:
     Must set `service_prefix` on your subclass.
     Provides `self.get_client()` → a ready-to-go MicroserviceClient.
     """
+    authentication_classes = [SessionAuthentication]
+
     service_prefix: str
 
     def getClient(self):

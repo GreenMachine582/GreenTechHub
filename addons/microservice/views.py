@@ -6,11 +6,11 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.views import View
 from django.views.generic import TemplateView, FormView
-from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
 from .mixins import ProxyMixin, MicroserviceMixin
-from .models import Microservice
 from .exceptions import MicroserviceError
 from ..authentication.mixins import LoginRequiredMixin
 
@@ -42,7 +42,7 @@ class BaseMicroserviceListView(LoginRequiredMixin, MicroserviceMixin, TemplateVi
             resp = self.getClient().request(
                 self.list_path, method="GET", user=self.request.user
             )
-            ctx[self.context_object_name] = resp.json() or []
+            ctx[self.context_object_name] = (resp.json() or {}).get("items") or []
         except MicroserviceError as e:
             messages.error(self.request, f"Failed to load records: {e}")
             ctx[self.context_object_name] = []

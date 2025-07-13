@@ -1,21 +1,18 @@
 import logging
 
-from django.contrib import messages
-from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.views.generic import TemplateView, FormView
 
 from .forms import StockForm, TransactionForm
+from ..authentication.mixins import LoginRequiredMixin
 from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceListView, BaseMicroserviceDeleteView
-from ..microservice.services.client import MicroserviceClient, MicroserviceError
 
 _logger = logging.getLogger(__name__)
 
 
-class StockListView(BaseMicroserviceListView):
+class StockListView(LoginRequiredMixin, TemplateView):
     template_name = "stock-list.html"
-    service_prefix = "pyfinbot"
-    list_path = "/stocks/"
-    context_object_name = "records"
+    list_path = "pyfinbot/stocks/"
 
 
 class StockFormView(BaseMicroserviceFormView):

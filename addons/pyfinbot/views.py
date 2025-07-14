@@ -14,6 +14,21 @@ class StockListView(LoginRequiredMixin, TemplateView):
     template_name = "stock-list.html"
     list_path = "pyfinbot/stocks/"
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["stock_columns"] = [
+            {"title": "Symbol", "field": "symbol", "sorter": "string", "headerFilter": "input"},
+            {"title": "Market", "field": "market", "sorter": "string", "headerFilter": "input"},
+            {"title": "Name",   "field": "name",   "sorter": "string", "headerFilter": "input"},
+            {
+                "title":     "Actions",
+                "field":     "actions",
+                "hozAlign":  "center",
+                "headerSort": False,
+            },
+        ]
+        return ctx
+
 
 class StockFormView(BaseMicroserviceFormView):
     form_class = StockForm

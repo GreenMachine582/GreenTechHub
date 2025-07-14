@@ -2,16 +2,41 @@ import {select} from "../helpers.js";
 
 export const Tabulator = (() => {
   const getCookie = (name) => {
-    let cookieValue = null;
+    let val = null;
     if (document.cookie && document.cookie !== "") {
-      document.cookie.split(";").forEach((cookie) => {
-        cookie = cookie.trim();
-        if (cookie.startsWith(name + "=")) {
-          cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+      document.cookie.split(";").forEach((c) => {
+        c = c.trim();
+        if (c.startsWith(name + "=")) {
+          val = decodeURIComponent(c.slice(name.length + 1));
         }
       });
     }
-    return cookieValue;
+    return val;
+  }
+
+  // formatter‐factory: interpolate ${…} → rowData[…]
+  function applyTemplateFormatter(table, columnName, templateStr) {
+    table.updateColumnDefinition(columnName, {
+      formatter(cell) {
+        const data = cell.getRow().getData();
+        // make CSRF available to ${csrftoken}
+        data.csrftoken = getCookie("csrftoken");
+        // simple ${key} → data[key]
+        return templateStr.replace(/\$\{([^}]+)\}/g, (_, key) =>
+          data[key] != null ? data[key] : ""
+        );
+      },
+    });
+  }
+
+  // fetch a <script type="text/template"> by ID
+  function applyTemplateFormatterById(table, columnName, tplId) {
+    const tpl = document.getElementById(tplId);
+    if (!tpl) {
+      console.error(`Tabulator template "${tplId}" not found`);
+      return;
+    }
+    applyTemplateFormatter(table, columnName, tpl.innerHTML);
   }
 
   const applyTabulatorWidget = (el, csrftoken) => {
@@ -19,10 +44,8 @@ export const Tabulator = (() => {
     const columns = JSON.parse(el.dataset.columns);
     const pageSize = parseInt(el.dataset.pageSize, 10);
 
-    const ajaxURL = `/api/${path}`;
-
-    el._tabulator = new window.Tabulator(el, {
-      ajaxURL,
+    const table = new window.Tabulator(el, {
+      ajaxURL: `/api/${path}`,
       ajaxConfig: {
         method: "GET",
         credentials: "same-origin",       // send the session cookie
@@ -34,7 +57,7 @@ export const Tabulator = (() => {
       paginationMode: "remote",
       paginationSize: pageSize,
 
-      // map your API response → Tabulator’s defaults
+      // map API response → Tabulator’s defaults
       dataReceiveParams: {
         data:      "items",  // array of rows
         last_page: "pages",  // total # pages
@@ -46,7 +69,16 @@ export const Tabulator = (() => {
 
       columns,
     });
-}
+    el._tabulator = table;
+
+    table.on("tableBuilt", () => {
+      const field = el.dataset.templateField;
+      const tplId = el.dataset.templateId;
+      if (field && tplId) {
+        applyTemplateFormatterById(table, field, tplId);
+      }
+    });
+  }
 
   const init = () => {
     document.addEventListener("DOMContentLoaded", () => {

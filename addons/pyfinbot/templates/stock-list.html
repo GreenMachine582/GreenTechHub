@@ -21,40 +21,24 @@
 {% block main %}
   <section class="section stock">
     <a href="{% url 'pyfinbot-stock-form' %}" class="btn btn-primary mb-3">Add Stock</a>
-    {% render_tabulator "records-table" view.list_path stock_columns 50 %}
+    {% render_tabulator "records-table" view.list_path stock_columns 50 template_field="actions" template_id="stock-action-template"%}
+    <script type="text/template" id="stock-action-template">
+        <a href="/pyfinbot/stock/form/${id}"
+           class="btn btn-sm btn-warning me-1">
+          Edit
+        </a>
+        <form method="post"
+              action="/pyfinbot/stock/delete/${id}/"
+              style="display:inline;">
+          <input type="hidden"
+                 name="csrfmiddlewaretoken"
+                 value="${csrftoken}">
+          <button type="submit"
+                  class="btn btn-sm btn-danger"
+                  onclick="return confirm('Really delete?');">
+            Delete
+          </button>
+        </form>
+      </script>
   </section>
-{% endblock %}
-
-{% block scripts %}
-  {{ block.super }}
-  <script>
-    window.addEventListener("load", () => {
-      const csrf = "{{ csrf_token }}";
-      const el   = document.getElementById("records-table");
-      const table = el._tabulator;
-
-      if (!table) {
-        return console.error("Tabulator instance not found on #records-table");
-      }
-
-      table.updateColumnDefinition("actions", {
-        formatter: function(cell, formatterParams, onRendered) {
-          const rowData = cell.getRow().getData();
-          const id = rowData.id;
-          return `
-            <a href="/pyfinbot/stock/form/${id}" class="btn btn-sm btn-warning me-1">
-              Edit
-            </a>
-            <form method="post" action="/pyfinbot/stock/delete/${id}/" style="display:inline;">
-              <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
-              <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Really delete this record?');">
-                Delete
-              </button>
-            </form>
-          `;
-        }
-      });
-    });
-  </script>
 {% endblock %}

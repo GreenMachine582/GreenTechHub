@@ -18,12 +18,10 @@ export const Tabulator = (() => {
     const defaults = window.tabulatorDefaults?.[el.id] || {};
 
     // allow optional data-* overrides
-    const path = el.dataset.path || defaults.path;
     const pageSize = el.dataset.pageSize
                        ? parseInt(el.dataset.pageSize, 10)
                        : defaults.pageSize;
     let columns;
-
     if (el.dataset.columns) {
       columns = JSON.parse(el.dataset.columns);
     } else {
@@ -33,10 +31,12 @@ export const Tabulator = (() => {
                 : [];
     }
 
-    const tplField = el.dataset.templateField || defaults.templateField;
-    const tplId = el.dataset.templateId || defaults.templateId;
-
-    return { path, columns, pageSize, tplField, tplId };
+    return {
+      path: el.dataset.path || defaults.path,
+      columns,
+      pageSize,
+      templateColumns: defaults.templateColumns || []
+    };
   }
 
   // formatter‐factory: interpolate ${…} → rowData[…]
@@ -65,7 +65,7 @@ export const Tabulator = (() => {
   }
 
   const applyTabulatorWidget = (el, csrftoken) => {
-    const { path, columns, pageSize, tplField, tplId } = resolveConfig(el);
+    const { path, columns, pageSize, templateColumns } = resolveConfig(el);
 
     const table = new window.Tabulator(el, {
       ajaxURL: `/api/${path}`,
@@ -74,31 +74,27 @@ export const Tabulator = (() => {
         credentials: "same-origin",       // send the session cookie
         headers: { "X-CSRFToken": csrftoken },
       },
-
-      // remote pagination
       pagination:     "remote",
       paginationMode: "remote",
       paginationSize: pageSize,
-
       // map API response → Tabulator’s defaults
       dataReceiveParams: {
         data:      "items",  // array of rows
         last_page: "pages",  // total # pages
         last_row:  "total" // overall row count (optional)
       },
-
       layout:      "fitColumns",
       placeholder: "No records found.",
-
       columns,
     });
-    el._tabulator = table;
 
     table.on("tableBuilt", () => {
-      if (tplField && tplId) {
-        applyTemplateFormatterById(table, tplField, tplId);
-      }
+      templateColumns.forEach(({ field, templateId }) => {
+        applyTemplateFormatterById(table, field, templateId);
+      });
     });
+
+    el._tabulator = table;
   }
 
   const init = () => {

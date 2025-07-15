@@ -28,6 +28,9 @@ class StockListView(LoginRequiredMixin, TemplateView):
                 "headerSort": False,
             },
         ]
+        ctx["template_columns"] = [
+            {"field": "actions", "templateId": "stock-action-template"},
+        ]
         return ctx
 
 

@@ -2,38 +2,41 @@
 import json
 
 from django import template
-from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-@register.simple_tag
-def render_tabulator(div_id, url_path, columns, page_size=50, template_field=None, template_id=None):
+@register.simple_tag(takes_context=True)
+def render_tabulator(context, path=None, table_id="records-table", columns=None, page_size=0,
+                     template_field=None, template_id=None):
     """
-    Renders a <div> for Tabulator _and_ optionally wires up a
-    ${…}-templated column formatter.
-    - div_id:         the HTML id attribute to use
-    - url_path:  e.g. "pyfinbot/stocks/"
-    - columns:        a Python list-of-dicts, e.g.
-        [
-          {"title":"Symbol","field":"symbol","sorter":"string","headerFilter":"input"},
-          …
-        ]
-    - page_size:      remote pagination page size
-    - template_field:  name of the column to decorate (e.g. "actions")
-    - template_id:     id of a <script type="text/template"> in your page
+    Renders an empty <div> for Tabulator and registers defaults
+    pulled from the view or passed args into window.tabulatorDefaults[table_id].
     """
-    return format_html(
-        '<div id="{div_id}" '
-        'class="tabulator-widget" '
-        'data-path="{url_path}" '
-        "data-columns='{cols}' "
-        'data-page-size="{page_size}" '
-        '{tpl_field}{tpl_id} '
-        'style="height:60vh;"></div>',
-        div_id=div_id,
-        url_path=url_path,
-        cols=json.dumps(columns),
-        page_size=page_size,
-        tpl_field=format_html('data-template-field="{}"', template_field) if template_field else "",
-        tpl_id=format_html('data-template-id="{}"', template_id) if template_id else ""
-    )
+    view = context.get("view", None)
+    # fall back to view attributes if not explicitly passed
+    resolved_path = path or getattr(view, "list_path", "")
+    resolved_columns = columns or context.get(f"{table_id}_columns", context.get(f"columns", []))
+    resolved_page_size = page_size or getattr(view, "page_size", 20)
+    resolved_tpl_field = template_field or getattr(view, "template_field", None)
+    resolved_tpl_id = template_id or getattr(view, "template_id", None)
+
+    # build config dict
+    cfg = {
+        "path": resolved_path,
+        "columns": resolved_columns,
+        "pageSize": resolved_page_size,
+    }
+    if resolved_tpl_field and resolved_tpl_id:
+        cfg["templateField"] = resolved_tpl_field
+        cfg["templateId"] = resolved_tpl_id
+
+    html = [
+        f'<div id="{table_id}" class="tabulator-widget"></div>',
+        "<script>",
+            "window.tabulatorDefaults = window.tabulatorDefaults || {};",
+            f'window.tabulatorDefaults["{table_id}"] = {json.dumps(cfg)};',
+        "</script>"
+    ]
+
+    return mark_safe("\n".join(html))

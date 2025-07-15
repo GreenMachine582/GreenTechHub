@@ -14,6 +14,31 @@ export const Tabulator = (() => {
     return val;
   }
 
+  function resolveConfig(el) {
+    const defaults = window.tabulatorDefaults?.[el.id] || {};
+
+    // allow optional data-* overrides
+    const path = el.dataset.path || defaults.path;
+    const pageSize = el.dataset.pageSize
+                       ? parseInt(el.dataset.pageSize, 10)
+                       : defaults.pageSize;
+    let columns;
+
+    if (el.dataset.columns) {
+      columns = JSON.parse(el.dataset.columns);
+    } else {
+      // make a shallow copy so we don’t mutate the global default
+      columns = Array.isArray(defaults.columns)
+                ? defaults.columns.slice()
+                : [];
+    }
+
+    const tplField = el.dataset.templateField || defaults.templateField;
+    const tplId = el.dataset.templateId || defaults.templateId;
+
+    return { path, columns, pageSize, tplField, tplId };
+  }
+
   // formatter‐factory: interpolate ${…} → rowData[…]
   function applyTemplateFormatter(table, columnName, templateStr) {
     table.updateColumnDefinition(columnName, {
@@ -40,9 +65,7 @@ export const Tabulator = (() => {
   }
 
   const applyTabulatorWidget = (el, csrftoken) => {
-    const path = el.dataset.path;         // ex: "pyfinbot/stocks/"
-    const columns = JSON.parse(el.dataset.columns);
-    const pageSize = parseInt(el.dataset.pageSize, 10);
+    const { path, columns, pageSize, tplField, tplId } = resolveConfig(el);
 
     const table = new window.Tabulator(el, {
       ajaxURL: `/api/${path}`,
@@ -72,10 +95,8 @@ export const Tabulator = (() => {
     el._tabulator = table;
 
     table.on("tableBuilt", () => {
-      const field = el.dataset.templateField;
-      const tplId = el.dataset.templateId;
-      if (field && tplId) {
-        applyTemplateFormatterById(table, field, tplId);
+      if (tplField && tplId) {
+        applyTemplateFormatterById(table, tplField, tplId);
       }
     });
   }

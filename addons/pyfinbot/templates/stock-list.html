@@ -21,7 +21,7 @@
 {% block main %}
   <section class="section stock">
     <a href="{% url 'pyfinbot-stock-form' %}" class="btn btn-primary mb-3">Add Stock</a>
-    {% render_tabulator "records-table" view.list_path stock_columns 50 template_field="actions" template_id="stock-action-template"%}
+    {% render_tabulator template_field="actions" template_id="stock-action-template"%}
     <script type="text/template" id="stock-action-template">
         <a href="/pyfinbot/stock/form/${id}"
            class="btn btn-sm btn-warning me-1">

@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load tabulator_tags %}
 
-{% block title %}
-  Stocks - PyFinBot
+{% block meta %}
+  {% with page_title="Stocks – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block pagetitle %}
@@ -10,7 +12,7 @@
     <h1>Stocks</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
         <li class="breadcrumb-item">PyFinBot</li>
         <li class="breadcrumb-item active">Stocks</li>
       </ol>

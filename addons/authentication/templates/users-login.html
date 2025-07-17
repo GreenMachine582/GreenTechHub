@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% load socialaccount %}
 
-{% block title %}
-  Login - GreenTechHub
+{% block meta %}
+  {% with page_title="Login - "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block main %}
@@ -53,7 +55,7 @@
                   <button class="btn btn-primary w-100" type="submit">Login</button>
                 </div>
                 <div class="col-12">
-                  <p class="small mb-0">Don't have account? <a href="/register/">Create an account</a></p>
+                  <p class="small mb-0">Don't have account? <a href="{% url 'register' %}">Create an account</a></p>
                 </div>
               </form>
 

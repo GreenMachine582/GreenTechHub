@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}
-  {% if record %}Edit{% else %}Add{% endif %} Stock - PyFinBot
+{% block meta %}
+  {% with page_title=record_id|yesno:"Edit Stock – PyFinBot,Add Stock – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block pagetitle %}
@@ -9,9 +11,9 @@
     <h1>Stock</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
-        <li class="breadcrumb-item"><a href="/pyfinbot/stock/list/">Stocks</a></li>
-        <li class="breadcrumb-item active">Stock</li>
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'pyfinbot-stock-list' %}">Stocks</a></li>
+        <li class="breadcrumb-item active">{% if record_id %}Edit{% else %}Add{% endif %} Stock</li>
       </ol>
     </nav>
   </div><!-- End Page Title -->

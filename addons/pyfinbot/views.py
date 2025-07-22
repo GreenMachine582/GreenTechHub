@@ -20,7 +20,9 @@ class StockListView(LoginRequiredMixin, TemplateView):
         ctx["columns"] = [
             {"title": "Symbol", "field": "symbol", "sorter": "string", "headerFilter": "input"},
             {"title": "Market", "field": "market", "sorter": "string", "headerFilter": "input"},
-            {"title": "Name",   "field": "name",   "sorter": "string", "headerFilter": "input"},
+            {"title": "Name", "field": "name", "sorter": "string", "headerFilter": "input"},
+            {"title": "Active", "field": "is_active", "formatter": "tickCross", "editor": "tickCross",
+             "hozAlign": "center", "headerFilter": "tickCross"},
             {
                 "title":     "Actions",
                 "field":     "actions",

@@ -1,11 +1,14 @@
 from django import forms
 
+from ..base.widgets import SwitchInput
+
 
 class StockForm(forms.Form):
     symbol: str = forms.CharField(max_length=20)
     market: str = forms.CharField(max_length=20)
     name: str = forms.CharField()
-    is_active: bool = forms.BooleanField(required=False, initial=True)
+    is_active: bool = forms.BooleanField(required=False, initial=True, disabled=True,
+                                         widget=SwitchInput(attrs={"id": "is_active", "label": "Active"}))
 
 
 class TransactionForm(forms.Form):

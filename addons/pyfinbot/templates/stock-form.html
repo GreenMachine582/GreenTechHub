@@ -46,9 +46,7 @@
                required>
       </div>
       <div class="mb-3">
-        <input type="checkbox" id="is_active" name="is_active" class="form-check-input" value="true
-               {% if form.is_active.value %} checked {% endif %}>">
-        <label for="is_active" class="form-check-label">Active</label>
+        {{ form.is_active }}
       </div>
       {% if record_id %}
         <button type="submit" class="btn btn-success">Save</button>

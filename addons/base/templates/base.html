@@ -1,4 +1,5 @@
 {% load static %}
+{% load django_bootstrap5 %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,12 +23,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i">
 
   {# ——— Vendor CSS ——— #}
-  <link rel="stylesheet" href="{% static 'packages/bootstrap/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.css' %}">
+  {% bootstrap_css %}
   <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.5.1/dist/css/tabulator.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
 
-  {# ——— Preload & Main CSS ——— #}
+  {# ——— Other CSS ——— #}
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
   {% block styles %}{% endblock %}
@@ -102,14 +102,12 @@
   </a>
 
   {# ——— Vendor JS (deferred) ——— #}
+  {% bootstrap_javascript %}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" defer></script>
   <script src="https://unpkg.com/tabulator-tables@5.5.1/dist/js/tabulator.min.js" defer></script>
 
   {# ——— Local JS (deferred) ——— #}
-  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}" defer></script>
-  <script src="{% static 'js/bootstrap5.modal.forms.js' %}" defer></script>
   <script type="module" src="{% static 'js/main.js' %}" defer></script>
-
   {% block footer_scripts %}{% endblock %}
 </body>
 </html>

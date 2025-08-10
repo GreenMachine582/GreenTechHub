@@ -1,4 +1,4 @@
-from django.forms import widgets
+from django.forms import widgets, CheckboxInput
 
 
 class BootstrapWidgetMixin:
@@ -91,13 +91,8 @@ class PasswordInput(BootstrapInputMixin, widgets.PasswordInput):
         self.render_value = render_value
 
 
-class CheckboxInput(BootstrapCheckboxMixin, widgets.CheckboxInput):
-    """A normal Bootstrap checkbox."""
-
-
-class SwitchInput(BootstrapCheckboxMixin, widgets.CheckboxInput):
+class SwitchInput(CheckboxInput):
     """A Bootstrap switch (toggle)."""
-    def __init__(self, attrs=None, **kwargs):
-        # always renders as a .form-switch
-        super().__init__(attrs=attrs, switch=True, **kwargs)
-
+    def __init__(self, attrs: dict = None, **kwargs):
+        attrs = {**(attrs or {}), "checkbox_style": "switch"}
+        super().__init__(attrs=attrs, **kwargs)

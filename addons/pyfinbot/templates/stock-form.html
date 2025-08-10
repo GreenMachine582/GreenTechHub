@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
 
 {% block meta %}
   {% with page_title=record_id|yesno:"Edit Stock – PyFinBot,Add Stock – PyFinBot" %}
@@ -30,35 +31,18 @@
     <form method="post" action="">
       {% csrf_token %}
 
-      <div class="mb-3">
-        <label for="symbol" class="form-label">Symbol</label>
-        <input type="text" id="symbol" name="symbol" class="form-control" value="{{ form.symbol.value|default:'' }}"
-               required {% if record_id %} readonly {% endif %}>
-      </div>
-      <div class="mb-3">
-        <label for="market" class="form-label">Market</label>
-        <input type="text" id="market" name="market" class="form-control" value="{{ form.market.value|default:'' }}"
-               required {% if record_id %} readonly {% endif %}>
-      </div>
-      <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}"
-               required>
-      </div>
-      <div class="mb-3">
-        {{ form.is_active }}
-      </div>
       {% if record_id %}
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="submit" form="delete-form" class="btn btn-danger"
-                onclick="return confirm('Really delete this record?');">
-          Delete
-        </button>
+        {% bootstrap_button "Save" button_type="submit" %}
+        {% bootstrap_button "Delete" button_type="submit" form="delete-form" button_class="btn-danger" onclick="return confirm('Really delete this record?');" %}
       {% else %}
-        <button type="submit" class="btn btn-primary">Create</button>
+        {% bootstrap_button "Create" button_type="submit" button_class="btn-success" %}
       {% endif %}
 
-      <a href="{{ cancel_url }}" class="btn btn-secondary">Cancel</a>
+      {% bootstrap_button "Cancel" button_type="link" href=cancel_url button_class="btn-secondary" %}
+
+      <div class="divider"></div>
+
+      {% bootstrap_form form %}
     </form>
   </section>
 {% endblock %}

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
     'rest_framework',
-    'bootstrap5',
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -177,6 +177,21 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
 LOGIN_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'authentication.User'
+
+
+################
+# Bootstrap    #
+################
+
+BOOTSTRAP5 = {
+    "set_placeholder": False,
+    "include_jquery": True,
+    "jquery_url": "https://code.jquery.com/jquery-3.6.4.min.js",
+    "form_class": "row g-3",
+    "field_renderers": {
+        "default": "addons.base.renderers.FieldRenderer",
+    },
+}
 
 
 ################

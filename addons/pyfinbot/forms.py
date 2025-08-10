@@ -10,6 +10,14 @@ class StockForm(forms.Form):
     is_active: bool = forms.BooleanField(required=False, initial=True, disabled=True, label="Active",
                                          widget=SwitchInput())
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if record_id := kwargs.get("initial", {}).get("id"):
+            for field in ["symbol", "market"]:
+                self.fields[field].disabled = True
+
+        self.record_id = record_id
+
 
 class TransactionForm(forms.Form):
     user_id = forms.IntegerField(label="User ID")

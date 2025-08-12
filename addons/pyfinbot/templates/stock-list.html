@@ -25,22 +25,22 @@
     <a href="{% url 'pyfinbot-stock-form' %}" class="btn btn-primary mb-3">Add Stock</a>
     {% render_tabulator %}
     <script type="text/template" id="stock-action-template">
-        <a href="/pyfinbot/stock/form/${id}"
-           class="btn btn-sm btn-warning me-1">
-          Edit
-        </a>
-        <form method="post"
-              action="/pyfinbot/stock/delete/${id}/"
-              style="display:inline;">
-          <input type="hidden"
-                 name="csrfmiddlewaretoken"
-                 value="${csrftoken}">
-          <button type="submit"
-                  class="btn btn-sm btn-danger"
-                  onclick="return confirm('Really delete?');">
-            Delete
-          </button>
-        </form>
-      </script>
+      <a href="/pyfinbot/stock/form/${id}"
+         class="btn btn-sm btn-warning me-1">
+        <i class="fa-solid fa-pencil"></i>
+      </a>
+      <form method="post"
+            action="/pyfinbot/stock/delete/${id}/"
+            style="display:inline;">
+        <input type="hidden"
+               name="csrfmiddlewaretoken"
+               value="${csrftoken}">
+        <button type="submit"
+                class="btn btn-sm btn-danger"
+                onclick="return confirm('Really delete?');">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </form>
+    </script>
   </section>
 {% endblock %}

@@ -1,0 +1,100 @@
+
+.qb{
+  --qb-gap: 12px;
+  --qb-gap-lg: 16px;
+  --qb-muted: #7a7f8a;
+  --qb-border: #e3e5ea;
+  --qb-branch: #d7dbe3;
+}
+
+.qb .qb-header{
+  display:flex;
+  align-items:center;
+  gap: var(--qb-gap);
+  flex-wrap: wrap;
+  margin-bottom: var(--qb-gap-lg);
+}
+.qb .qb-header > strong{ margin-right: 2px; }
+.qb .qb-header .muted{ color: var(--qb-muted); }
+
+.qb .qb-actions.btn-group.btn-group-sm .btn + .btn{
+  margin-left: 6px;
+}
+
+.qb .qb-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  gap: var(--qb-gap);
+  align-items: center;
+  margin: 8px 0;
+}
+.qb .qb-row select,
+.qb .qb-row input{
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.qb .qb-row .qb-actions{
+  display: flex;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.qb .qb-group > .qb-header{
+  margin-bottom: 8px;
+}
+
+.qb .qb-children{
+  position: relative;
+  margin-top: 6px;
+}
+
+.qb .qb-child{
+  position: relative;
+  padding-left: 22px;
+  margin: 10px 0;
+}
+
+/* ---- Branch lines ---- */
+.qb .qb-child::before{
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 18px;
+  width: 14px;
+  border-top: 2px solid var(--qb-branch);
+}
+.qb .qb-child::after{
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: -6px;
+  bottom: -6px;
+  border-left: 2px solid var(--qb-branch);
+}
+.qb .qb-child:last-child::after{ bottom: 18px; }
+
+.qb.qb-compact .qb-row{
+  grid-template-columns:
+    minmax(140px, 1fr)
+    minmax(140px, 1fr)
+    minmax(200px, 1.4fr)
+    auto;
+  gap: 10px;
+}
+
+@media (max-width: 576px){
+  .qb .qb-row{
+    grid-template-columns: 1fr;
+  }
+  .qb .qb-row .qb-actions{
+    justify-content: flex-end;
+  }
+}
+
+.qb .qb-group{
+  background: #fafbfc;
+  border: 1px solid var(--qb-border);
+  border-radius: 6px;
+  padding: 8px;
+}

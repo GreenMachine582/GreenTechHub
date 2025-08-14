@@ -330,6 +330,7 @@
         iconButton('fa-solid fa-plus', 'Add rule',  () => this.addRule(), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-layer-group', 'Add group', () => this.addGroup(), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-eraser', 'Clear all', () => this.clear(), { variant: 'warning', outline: false }),
+        iconButton('fa-solid fa-search', 'Search', () => this.emit(), { variant: 'primary', outline: false }),
       ]),
     ]);
     this.root.appendChild(header);

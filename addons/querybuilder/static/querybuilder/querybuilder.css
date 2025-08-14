@@ -104,3 +104,12 @@
 .qb .btn-check:not(:checked) + .btn:hover {
   box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .25);
 }
+
+.qb.qb-collapsed .qb-root-children { display: none; }
+
+.qb .qb-root-children {
+  overflow: hidden;
+  transition: opacity .18s ease, max-height .18s ease;
+}
+.qb:not(.qb-collapsed) .qb-root-children { opacity: 1; max-height: 2000px; } /* big enough cap */
+.qb.qb-collapsed .qb-root-children { opacity: 0; max-height: 0; }

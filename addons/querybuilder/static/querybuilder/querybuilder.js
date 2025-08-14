@@ -257,6 +257,30 @@
     return wrap;
   }
 
+  function collapseExpandButton(qb) {
+    const btn = el('button', {
+      type: 'button',
+      class: 'btn btn-sm btn-outline-secondary',
+      title: qb.collapsed ? 'Expand filters' : 'Collapse filters',
+      'aria-label': 'Toggle filters',
+      'aria-expanded': String(!qb.collapsed),
+      'data-bs-toggle': 'tooltip',
+      'data-bs-placement': 'top',
+    }, [
+      el('i', { class: qb.collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up' })
+    ]);
+
+    btn.addEventListener('click', () => {
+      const tip = (window.bootstrap && bootstrap.Tooltip) ? bootstrap.Tooltip.getInstance(btn) : null;
+      if (tip) tip.hide();
+      qb.collapsed = !qb.collapsed;
+      qb.applyCollapse();     // update UI in-place
+    });
+
+    qb._collapseBtn = btn;    // keep a reference so applyCollapse can update it
+    return btn;
+  }
+
   // ---------- Bootstrap tooltips ----------
   function disposeBSTooltips(root) {
     if (!window.bootstrap || !bootstrap.Tooltip) return;
@@ -303,6 +327,7 @@
     this.compact = !!options.compact;
     this.onChange = options.onChange || function () {};
     this.hidden = options.hiddenInput || null; // hidden input to write JSON into
+    this.collapsed = !!options.collapsed;
     this.state = { combinator: this.mode, rules: [] };
     this.render();
   }
@@ -327,6 +352,7 @@
         return node;
       })(),
       el('div', { class: 'qb-actions btn-group btn-group-sm' }, [
+        collapseExpandButton(this),
         iconButton('fa-solid fa-plus', 'Add rule',  () => this.addRule(), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-layer-group', 'Add group', () => this.addGroup(), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-eraser', 'Clear all', () => this.clear(), { variant: 'warning', outline: false }),
@@ -342,6 +368,7 @@
     const rootGroupNode = { rules: this.state.rules };
     this.state.rules.forEach((r, idx) => this.renderNode(r, children, idx, rootGroupNode));
 
+    this.applyCollapse();
     this.emit();
     initBSTooltips(this.root);
   };
@@ -409,6 +436,26 @@
         rule.value = valueFromInput(f, rule.op, valueInput);
         this.emit();
       });
+    QueryBuilder.prototype.applyCollapse = function () {
+      const collapsed = !!this.collapsed;
+      this.root.classList.toggle('qb-collapsed', collapsed);
+
+      // Toggle visibility/ARIA on the children container
+      if (this.rulesContainer) {
+        this.rulesContainer.setAttribute('aria-hidden', String(collapsed));
+      }
+
+      // Update the button icon + tooltip/title + aria-expanded
+      if (this._collapseBtn) {
+        const icon = this._collapseBtn.querySelector('i');
+        if (icon) icon.setAttribute('class', collapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up');
+        this._collapseBtn.title = collapsed ? 'Expand filters' : 'Collapse filters';
+        this._collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+        const tip = (window.bootstrap && bootstrap.Tooltip) ? bootstrap.Tooltip.getInstance(this._collapseBtn) : null;
+        if (tip) tip.hide();
+      }
+    };
+
     };
     attachValueHandler();
 
@@ -523,11 +570,12 @@
       const hiddenSelector = node.getAttribute('data-hidden');
       const compact = node.getAttribute('data-compact') === 'true';
       const initial = node.getAttribute('data-initial');
+      const collapsed = node.getAttribute('data-collapsed') === 'true';  // <--- NEW
       const fields = window.__QB_CONFIGS__ && window.__QB_CONFIGS__[configId];
       if (!fields) return;
 
       const hidden = hiddenSelector ? document.querySelector(hiddenSelector) : null;
-      const qb = new QueryBuilder(node, { fields, compact, hiddenInput: hidden, onChange: () => {} });
+      const qb = new QueryBuilder(node, { fields, compact, collapsed, hiddenInput: hidden, onChange: () => {} });
 
       if (initial) {
         try { qb.setRules(JSON.parse(initial)); } catch { /* ignore */ }

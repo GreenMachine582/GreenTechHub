@@ -18,7 +18,7 @@
 .qb .qb-header .muted{ color: var(--qb-muted); }
 
 .qb .qb-actions.btn-group.btn-group-sm .btn + .btn{
-  margin-left: 6px;
+  margin-left: 2px;
 }
 
 .qb .qb-row{
@@ -97,4 +97,10 @@
   border: 1px solid var(--qb-border);
   border-radius: 6px;
   padding: 8px;
+}
+
+.qb .qb-combinator .btn:active { transform: translateY(1px); }
+
+.qb .btn-check:not(:checked) + .btn:hover {
+  box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .25);
 }

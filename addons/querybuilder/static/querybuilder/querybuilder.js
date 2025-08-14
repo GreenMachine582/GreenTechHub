@@ -199,6 +199,64 @@
     return raw;
   }
 
+  function combinatorToggle(current = 'AND', onChange) {
+    const idBase = 'qb-comb-' + Math.random().toString(36).slice(2);
+
+    const wrap = el('div', {
+      class: 'btn-group btn-group-sm qb-combinator',
+      role: 'group',
+      'aria-label': 'Combine rules'
+    });
+
+    const options = [
+      { val: 'AND', label: 'AND', icon: 'fa-solid fa-link' },
+      { val: 'OR',  label: 'OR',  icon: 'fa-solid fa-code-branch' }
+    ];
+
+    const inputs = [];
+    const labels = [];
+
+    const syncPressed = () => {
+      labels.forEach((lab, i) => {
+        lab.setAttribute('aria-pressed', String(inputs[i].checked));
+      });
+    };
+
+    options.forEach(({ val, label, icon }) => {
+      const input = el('input', {
+        class: 'btn-check',
+        type: 'radio',
+        name: idBase,
+        id: `${idBase}-${val}`,
+        autocomplete: 'off'
+      });
+      input.checked = String(current).toUpperCase() === val;
+
+      const btn = el('label', {
+        class: 'btn btn-outline-primary',
+        for: `${idBase}-${val}`,
+        title: label,
+        'data-bs-toggle': 'tooltip',
+        'data-bs-placement': 'top',
+        'aria-pressed': String(input.checked)
+      }, [
+        el('i', { class: icon })
+      ]);
+
+      input.addEventListener('change', () => {
+        syncPressed();
+        onChange && onChange(val);
+      });
+
+      inputs.push(input);
+      labels.push(btn);
+      wrap.appendChild(input);
+      wrap.appendChild(btn);
+    });
+
+    return wrap;
+  }
+
   // ---------- Bootstrap tooltips ----------
   function disposeBSTooltips(root) {
     if (!window.bootstrap || !bootstrap.Tooltip) return;
@@ -261,8 +319,13 @@
 
     const header = el('div', { class: 'qb-header' }, [
       el('strong', {}, 'Filters'),
-      el('span', { class: 'muted' }, '(combine with)'),
-      this.combinatorSelect(),
+      ( () => {
+        const node = combinatorToggle(this.state.combinator, (val) => {
+          this.state.combinator = val;
+          this.emit();
+        });
+        return node;
+      })(),
       el('div', { class: 'qb-actions btn-group btn-group-sm' }, [
         iconButton('fa-solid fa-plus', 'Add rule',  () => this.addRule(), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-layer-group', 'Add group', () => this.addGroup(), { variant: 'success', outline: false }),
@@ -282,17 +345,6 @@
     initBSTooltips(this.root);
   };
 
-  QueryBuilder.prototype.combinatorSelect = function () {
-    const sel = el('select');
-    ['AND', 'OR'].forEach(v => sel.appendChild(el('option', { value: v }, v)));
-    sel.value = this.state.combinator;
-    sel.addEventListener('change', () => {
-      this.state.combinator = sel.value;
-      this.emit();
-    });
-    return sel;
-  };
-
   QueryBuilder.prototype.renderNode = function (node, parentEl, index, parentGroupNode) {
     if (node.type === 'group') return this.renderGroup(node, parentEl, index, parentGroupNode);
     return this.renderRule(node, parentEl, index, parentGroupNode);
@@ -302,12 +354,13 @@
     const wrap = el('div', { class: 'qb-group' });
     const header = el('div', { class: 'qb-header' }, [
       el('span', { class: 'muted' }, 'Group'),
-      (function (sel) {
-        ['AND', 'OR'].forEach(v => sel.appendChild(el('option', { value: v }, v)));
-        sel.value = groupNode.combinator || 'AND';
-        sel.addEventListener('change', () => { groupNode.combinator = sel.value; this.emit(); });
-        return sel;
-      }).call(this, el('select')),
+      ( () => {
+        const node = combinatorToggle(groupNode.combinator || 'AND', (val) => {
+          groupNode.combinator = val;
+          this.emit();
+        });
+        return node;
+      })(),
       el('div', { class: 'qb-actions btn-group btn-group-sm' }, [
         iconButton('fa-solid fa-plus',        'Add rule',     () => this.addRule(groupNode), { variant: 'success', outline: false }),
         iconButton('fa-solid fa-layer-group', 'Add group',    () => this.addGroup(groupNode), { variant: 'success', outline: false }),

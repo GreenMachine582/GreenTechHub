@@ -6,7 +6,7 @@ from django.utils.text import slugify
 register = template.Library()
 
 @register.inclusion_tag("querybuilder/widget.html", takes_context=True)
-def render_querybuilder(context, *, config_id, fields, name: str = "filters", target=None, input_id=None, initial=None, compact=False, collapsed=False):
+def render_querybuilder(context, *, config_id, fields=None, name: str = "filters", target=None, input_id=None, initial=None, compact=False, collapsed=False):
     """
     Renders the QueryBuilder UI.
 
@@ -20,6 +20,7 @@ def render_querybuilder(context, *, config_id, fields, name: str = "filters", ta
         compact (bool): compact mode
         collapsed (bool): start collapsed (if your JS supports it)
     """
+    fields = fields or context.get(f"{config_id}_fields", context.get("qb-fields", []))
     input_id = input_id or f"qb-{slugify(config_id)}-{slugify(name)}"
     auto_input = not bool(target)
     target_selector = target or f"#{input_id}"

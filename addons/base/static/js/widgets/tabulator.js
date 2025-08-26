@@ -174,6 +174,7 @@ const applyTabulatorWidget = (el, csrftoken) => {
     pagination: true,
     paginationMode: "remote",
     paginationSize: cfg.pageSize,
+    paginationSizeSelector: true,
     // Map API response → Tabulator’s defaults
     dataReceiveParams: {
       data:      "items",  // array of rows

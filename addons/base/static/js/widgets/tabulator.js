@@ -42,6 +42,7 @@ function resolveConfig(el) {
     qbScope,
     minReqGapMs: 500,        // throttle same requests
     _filters: null,          // latest from qb:search
+    showSummary: defaults.showSummary !== false,
   };
 }
 
@@ -150,10 +151,20 @@ const applyTabulatorWidget = (el, csrftoken) => {
   const cfg = resolveConfig(el);
   el.classList.add("tabulator-bootstrap5");
 
+  const paginationCounterFn = (pageSize, currentRow, currentPage, totalRows, totalPages) => {
+    // currentRow is 1-based index of the first visible row
+    if (!totalRows || totalRows <= 0) return "Showing 0";
+     // number of rows currently visible on THIS page (respects header filters on the page)
+    const activeOnPage = table ? table.getDataCount("active") : Math.min(pageSize, Math.max(0, totalRows - currentRow + 1));
+    const start = activeOnPage ? currentRow : 0;
+    const end   = activeOnPage ? (currentRow + activeOnPage - 1) : 0;
+    return `Showing ${start}–${end} of ${totalRows} (${currentPage} of ${totalPages} pages)`;
+  };
+
   // per-element request gate
   const gate = { lastKey: null, lastTime: 0, pending: null };
 
-  const table = new window.Tabulator(el, {
+  const options = {
     ajaxURL: `/api/${cfg.path}`,
     ajaxConfig: {
       method: "GET",
@@ -207,8 +218,21 @@ const applyTabulatorWidget = (el, csrftoken) => {
     layout: "fitColumns",
     placeholder: "No records found.",
     columns: cfg.columns,
-  });
+  }
 
+  if (cfg.showSummary) {
+    const summarySelector = `#${el.id}-summary`;
+    if (document.querySelector(summarySelector)) {
+      options.paginationCounter = paginationCounterFn;
+      options.paginationCounterElement = summarySelector;
+    } else {
+      console.warn(`Tabulator summary element ${summarySelector} not found; disabling counter.`);
+    }
+  }
+
+  const table = new window.Tabulator(el, options);
+
+  // Apply any template formatters
   table.on("tableBuilt", () => {
     (cfg.templateColumns || []).forEach(({ field, templateId }) => {
       applyTemplateFormatterById(table, field, templateId);

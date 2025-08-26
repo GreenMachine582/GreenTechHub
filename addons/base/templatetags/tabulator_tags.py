@@ -72,6 +72,7 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
         "columns": resolved_columns,
         "pageSize": resolved_page_size,
         "templateColumns": resolved_template_columns,
+        "showSummary": True,
     }
     if resolved_filters is not None:
         # allow dict OR querystring string
@@ -103,6 +104,7 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
         html.append(qb_html)
 
     html.extend([
+        f'<div id="{table_id}-summary" class="tabulator-summary small text-muted mt-2"></div>',
         f'<div id="{table_id}" class="tabulator-widget" {" ".join(data_attrs)}></div>',
         "<script>",
         "  window.tabulatorDefaults = window.tabulatorDefaults || {};",

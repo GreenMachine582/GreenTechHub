@@ -67,26 +67,31 @@ h6 {
 --------------------------------------------------------------*/
 .back-to-top {
   position: fixed;
-  visibility: hidden;
-  opacity: 0;
-  right: 15px;
-  bottom: 15px;
-  z-index: 99999;
-  background: #4154f1;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 4px;
-  transition: all 0.4s;
+  background-color: var(--bs-primary);
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 .25rem .5rem rgba(0,0,0,.15);
+  opacity: 0;
+  visibility: hidden;
+  transition: all .4s;
+  text-decoration: none;
 }
 
 .back-to-top i {
-  font-size: 24px;
-  color: #fff;
-  line-height: 0;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .back-to-top:hover {
-  background: #6776f4;
+  background-color: #0a55c0;
   color: #fff;
 }
 

@@ -8,7 +8,7 @@ class FieldRenderer(BaseFieldRenderer):
         """
         Custom FieldRenderer to handle checkbox styles.
         """
-        if (widget := field.field.widget).input_type == "checkbox":
+        if hasattr((widget := field.field.widget), "input_type") and widget.input_type == "checkbox":
             if style := widget.attrs.get("checkbox_style"):
                 kwargs["checkbox_style"] = style
         super().__init__(field, **kwargs)

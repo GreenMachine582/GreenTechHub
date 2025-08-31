@@ -1,11 +1,11 @@
 import logging
 
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, FormView
+from django.views.generic import TemplateView
 
 from .forms import StockForm, TransactionForm
 from ..authentication.mixins import LoginRequiredMixin
-from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceListView, BaseMicroserviceDeleteView
+from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceDeleteView
 
 _logger = logging.getLogger(__name__)
 
@@ -55,12 +55,36 @@ class StockDeleteView(BaseMicroserviceDeleteView):
     confirm_label = "Delete permanently"
 
 
-class TransactionListView(BaseMicroserviceListView):
+class TransactionListView(LoginRequiredMixin, TemplateView):
     template_name = "transaction-list.html"
-    service_prefix = "pyfinbot"
-    list_path = "/transactions/"
-    context_object_name = "records"
+    list_path = "pyfinbot/transactions/"
+    page_size = 50
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["columns"] = [
+            {"title": "Date", "field": "transaction_date", "sorter": "date", "headerFilter": "input", "hozAlign": "center"},
+            {"title": "User", "field": "user_id", "sorter": "number", "headerFilter": "input", "hozAlign": "center"},
+            {"title": "Stock", "field": "stock_id", "sorter": "number", "headerFilter": "input", "hozAlign": "center"},
+            {"title": "Type", "field": "type", "sorter": "string", "headerFilter": "select",
+                "headerFilterParams": {"values": {"": "All", "buy": "Buy", "sell": "Sell"}}, "hozAlign": "center"},
+            {"title": "Units", "field": "units", "sorter": "number", "formatter": "money", "formatterParams": {"symbol": "$"}, "headerFilter": "input", "hozAlign": "right"},
+            {"title": "Price", "field": "price", "sorter": "number", "formatter": "money", "formatterParams": {"symbol": "$"}, "headerFilter": "input", "hozAlign": "right"},
+            {"title": "Total Value", "field": "total_value", "sorter": "number", "formatter": "money", "formatterParams": {"symbol": "$"}, "headerFilter": "input", "hozAlign": "right"},
+            {"title": "Fees", "field": "fees", "sorter": "number", "formatter": "money", "formatterParams": {"symbol": "$"}, "headerFilter": "input", "hozAlign": "right"},
+            {"title": "Cost Basis", "field": "cost", "sorter": "number", "formatter": "money", "formatterParams": {"symbol": "$"}, "headerFilter": "input", "hozAlign": "right"},
+            {"title": "FY", "field": "fy", "sorter": "number", "headerFilter": "input", "hozAlign": "center"},
+            {
+                "title":     "Actions",
+                "field":     "actions",
+                "hozAlign":  "center",
+                "headerSort": False,
+            },
+        ]
+        ctx["template_columns"] = [
+            {"field": "actions", "templateId": "transaction-action-template"},
+        ]
+        return ctx
 
 class TransactionFormView(BaseMicroserviceFormView):
     form_class = TransactionForm

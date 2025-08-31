@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
 
-{% block title %}
-  {% if record %}Edit{% else %}Add{% endif %} Transaction - PyFinBot
+{% block meta %}
+  {% with page_title=record_id|yesno:"Edit Transaction – PyFinBot,Add Transaction – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block pagetitle %}
@@ -9,9 +12,9 @@
     <h1>Transaction</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
-        <li class="breadcrumb-item"><a href="/pyfinbot/transaction/list/">Transactions</a></li>
-        <li class="breadcrumb-item active">Transaction</li>
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'pyfinbot-transaction-list' %}">Transactions</a></li>
+        <li class="breadcrumb-item active">{% if record_id %}Edit{% else %}Add{% endif %} Transaction</li>
       </ol>
     </nav>
   </div><!-- End Page Title -->
@@ -19,41 +22,109 @@
 
 {% block main %}
   <section class="section transaction">
-    {% if record_id %}
-      <form id="delete-form" method="post" action="{% url 'pyfinbot-transaction-delete' record_id=record_id %}"
-            style="display: none;">
-        {% csrf_token %}
-      </form>
-    {% endif %}
     <form method="post" action="">
       {% csrf_token %}
 
-      <div class="mb-3">
-        <label for="symbol" class="form-label">Symbol</label>
-        <input type="text" id="symbol" name="symbol" class="form-control" value="{{ form.symbol.value|default:'' }}"
-               required {% if record_id %} readonly {% endif %}>
-      </div>
-      <div class="mb-3">
-        <label for="market" class="form-label">Market</label>
-        <input type="text" id="market" name="market" class="form-control" value="{{ form.market.value|default:'' }}"
-               required {% if record_id %} readonly {% endif %}>
-      </div>
-      <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" id="name" name="name" class="form-control" value="{{ form.name.value|default:'' }}"
-               required>
-      </div>
       {% if record_id %}
-        <button type="submit" class="btn btn-success">Save</button>
-        <button type="submit" form="delete-form" class="btn btn-danger"
-                onclick="return confirm('Really delete this record?');">
+        {% bootstrap_button "Save" button_type="submit" %}
+        <a class="btn btn-danger js-modal"
+           data-form-url="{% url 'pyfinbot-transaction-delete' record_id=record_id %}">
           Delete
-        </button>
+        </a>
       {% else %}
-        <button type="submit" class="btn btn-primary">Create</button>
+        {% bootstrap_button "Create" button_type="submit" button_class="btn-success" %}
       {% endif %}
 
-      <a href="{{ cancel_url }}" class="btn btn-secondary">Cancel</a>
+      {% bootstrap_button "Cancel" button_type="link" href=cancel_url button_class="btn-secondary" %}
+
+      <div class="divider"></div>
+
+      <div class="mb-3">
+        <label for="stock_id" class="form-label">Stock ID</label>
+        <input type="number" id="stock_id" name="stock_id" class="form-control"
+               value="{{ form.stock_id.value|default:'' }}" required {% if record_id %} readonly disabled {% endif %}>
+      </div>
+
+      {% if record_id %}
+        <div class="mb-3">
+          <label for="transaction_date" class="form-label">Date</label>
+          <input type="date" id="transaction_date" name="transaction_date" class="form-control"
+                 value="{{ form.transaction_date.value|default:'' }}" readonly disabled>
+        </div>
+      {% endif %}
+      <div class="mb-3">
+        <label for="type" class="form-label">Type</label>
+        <select id="type" name="type" class="form-select" required {% if record_id %} readonly disabled {% endif %}>
+          <option value="buy" {% if form.type.value == 'buy' %}selected{% endif %}>Buy</option>
+          <option value="sell" {% if form.type.value == 'sell' %}selected{% endif %}>Sell</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="units" class="form-label">Units</label>
+        <input type="number" step="0.01" id="units" name="units" class="form-control"
+               value="{{ form.units.value|default:'' }}" required {% if record_id %} readonly disabled {% endif %}>
+      </div>
+      <div class="mb-3">
+        <label for="price" class="form-label">Price</label>
+        <input type="number" step="0.001" id="price" name="price" class="form-control"
+               value="{{ form.price.value|default:'' }}" required {% if record_id %} readonly disabled {% endif %}>
+      </div>
+      <div class="mb-3">
+        <label for="total_value" class="form-label">Total Value</label>
+        <input type="number" step="0.000001" id="total_value" name="total_value" class="form-control"
+               value="{{ form.total_value.value|default:'0.00' }}"
+               readonly disabled>
+      </div>
+      <div class="mb-3">
+        <label for="fees" class="form-label">Fees</label>
+        <input type="number" step="0.001" id="fees" name="fees" class="form-control"
+               value="{{ form.fees.value|default:'0.00' }}" required {% if record_id %} readonly disabled {% endif %}>
+      </div>
+      <div class="mb-3">
+        <label for="cost" class="form-label">Cost</label>
+        <input type="number" step="0.000001" id="cost" name="cost" class="form-control"
+               value="{{ form.cost.value|default:'0.00' }}"
+               readonly disabled>
+      </div>
+      {% if record_id %}
+        <div class="mb-3">
+          <label for="fy" class="form-label">Fiscal Year</label>
+          <input type="number" id="fy" name="fy" class="form-control" value="{{ form.fy.value|default:'' }}"
+                 readonly disabled>
+        </div>
+      {% endif %}
+
     </form>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const unitsEl      = document.getElementById("units");
+        const priceEl      = document.getElementById("price");
+        const feesEl       = document.getElementById("fees");
+        const totalEl      = document.getElementById("total_value");
+        const costEl       = document.getElementById("cost");
+
+        function compute() {
+          // parse floats, defaulting to 0
+          const u = parseFloat(unitsEl.value) || 0;
+          const p = parseFloat(priceEl.value) || 0;
+          const f = parseFloat(feesEl.value)  || 0;
+
+          const total = u * p;
+          const cost  = total + f;  // cost‐basis = total + fees
+
+          totalEl.value = total.toFixed(5);
+          costEl.value  = cost.toFixed(5);
+        }
+
+        // Recompute whenever any of these change
+        [unitsEl, priceEl, feesEl].forEach(el =>
+          el.addEventListener("input", compute)
+        );
+
+        // initialize on load
+        compute();
+      });
+    </script>
+
   </section>
 {% endblock %}

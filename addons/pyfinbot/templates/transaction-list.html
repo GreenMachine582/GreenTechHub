@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load tabulator_tags %}
 
-{% block title %}
-  Transactions - PyFinBot
+{% block meta %}
+  {% with page_title="Transactions – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block pagetitle %}
@@ -9,7 +12,7 @@
     <h1>Transactions</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/home/"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
         <li class="breadcrumb-item">PyFinBot</li>
         <li class="breadcrumb-item active">Transactions</li>
       </ol>
@@ -19,28 +22,19 @@
 
 {% block main %}
   <section class="section transaction">
-    <a href="/pyfinbot/transaction/form" class="btn btn-primary">Add</a>
-    <table class="table mt-3">
-      <thead><tr><th>Symbol</th><th>Market</th><th>Name</th><th>Actions</th></tr></thead>
-      <tbody>
-        {% for record in records %}
-        <tr>
-          <td>{{ record.symbol }}</td>
-          <td>{{ record.market }}</td>
-          <td>{{ record.name }}</td>
-          <td>
-            <a href="/pyfinbot/transaction/form/{{ record.id }}" class="btn btn-sm btn-warning">Edit</a>
-            <form method="post" action="{% url 'pyfinbot-transaction-delete' record_id=record.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Really delete this record?');">
-                Delete
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <a href="{% url 'pyfinbot-transaction-form' %}" class="btn btn-primary mb-3">Add Transaction</a>
+    {% render_tabulator %}
+
+    <script type="text/template" id="transaction-action-template">
+      <a href="/pyfinbot/transaction/form/${id}"
+         class="btn btn-sm btn-warning me-1">
+        <i class="fa-solid fa-pencil"></i>
+      </a>
+      <button type="button"
+              class="btn btn-sm btn-danger js-modal"
+              data-form-url="/pyfinbot/stock/delete/${id}/">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </script>
   </section>
 {% endblock %}

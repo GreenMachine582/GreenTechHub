@@ -20,14 +20,17 @@ class StockForm(forms.Form):
 
 
 class TransactionForm(forms.Form):
-    user_id = forms.IntegerField(label="User ID")
+    user_id = forms.IntegerField(label="User ID", required=False, disabled=True)
     stock_id = forms.IntegerField(label="Stock ID")
-    transaction_date = forms.DateField(label="Transaction Date", widget=forms.DateInput(attrs={'type': 'date'}))
+    transaction_date = forms.DateField(label="Transaction Date", required=False, disabled=True,
+                                       widget=forms.DateInput(attrs={'type': 'date'}))
     type = forms.ChoiceField(label="Transaction Type", choices=[('buy', 'Buy'), ('sell', 'Sell')])
     units = forms.DecimalField(label="Transaction Units", max_digits=12, decimal_places=2)
     price = forms.DecimalField(label="Transaction Price", max_digits=12, decimal_places=3)
-    total_value = forms.DecimalField(label="Transaction Total Value", max_digits=18, decimal_places=6, required=False, initial=0.0)
+    total_value = forms.DecimalField(label="Transaction Total Value", max_digits=18, decimal_places=6, required=False, initial=0.0,
+                                     disabled=True)
     fees = forms.DecimalField(label="Transaction Fees", max_digits=12, decimal_places=2, required=False, initial=0.0)
-    cost = forms.DecimalField(label="Transaction Cost", max_digits=18, decimal_places=6, required=False, initial=0.0)
-    notes = forms.CharField(label="Transaction Notes", required=False, widget=forms.Textarea)
-    fy = forms.IntegerField(label="Fiscal Year", required=False, initial=0)
+    cost = forms.DecimalField(label="Transaction Cost", max_digits=18, decimal_places=6, required=False, initial=0.0,
+                              disabled=True)
+    notes = forms.CharField(label="Transaction Notes", required=False, disabled=True, widget=forms.Textarea)
+    fy = forms.IntegerField(label="Fiscal Year", required=False, disabled=True)

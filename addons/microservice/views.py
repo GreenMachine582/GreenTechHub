@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import decimal
 import logging
 
 from django.contrib import messages
@@ -19,6 +20,27 @@ _logger = logging.getLogger(__name__)
 #TODO: add log/audit usage by user
 
 # Create your views here.
+
+def _makeJsonable(data: dict) -> dict:
+    """
+    Convert form.cleaned_data into a JSON-serializable dict.
+    - Decimal → float
+    - date/datetime → isoformat string
+    - Leave everything else untouched
+    """
+    out = {}
+    for k, v in data.items():
+        if isinstance(v, decimal.Decimal):
+            out[k] = float(v)
+        elif hasattr(v, "isoformat"):  # date, datetime, time
+            try:
+                out[k] = v.isoformat()
+            except Exception:
+                out[k] = str(v)
+        else:
+            out[k] = v
+    return out
+
 
 class MicroserviceProxyView(ProxyMixin, APIView):
     permission_classes = [IsAuthenticated]
@@ -84,6 +106,10 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
         ctx["cancel_url"] = self.get_success_url()
         return ctx
 
+    def form_invalid(self, form):
+        messages.error(self.request, "Please correct the errors below.")
+        return super().form_invalid(form)
+
     def form_valid(self, form):
         record_id = self.kwargs.get("record_id")
         if record_id:
@@ -91,12 +117,13 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
         else:
             path, method = self.create_path, "POST"
 
+        payload = _makeJsonable(form.cleaned_data)
         try:
             self.getClient().request(
                 path=path,
                 method=method,
                 user=self.request.user,
-                json=form.cleaned_data
+                json=payload
             )
         except MicroserviceError as e:
             messages.error(self.request, f"Failed to save record: {e}")

@@ -101,12 +101,23 @@
     <i class="fas fa-arrow-up"></i>
   </a>
 
-  {# ——— Vendor JS (deferred) ——— #}
+  {# ======= Modal Root(s) ======= #}
+  {# Reusable modal container for forms and confirmations. #}
+  {% include "modal_forms/modal_root.html" %}
+
+  {# Optional additional modals #}
+  {% block modals %}{% endblock %}
+
+  {# ——— Vendor JS ——— #}
   {% bootstrap_javascript %}
   <script src="https://unpkg.com/tabulator-tables@5.5.1/dist/js/tabulator.min.js" defer></script>
 
-  {# ——— Local JS (deferred) ——— #}
+  {# ——— Local JS ——— #}
   <script type="module" src="{% static 'js/main.js' %}" defer></script>
+  {% block modal_form_scripts %}
+    {% include "modal_forms/modal_form_scripts.html" %}
+    {% include "partials/csrf_ajax.html" %}
+  {% endblock %}
   {% block footer_scripts %}{% endblock %}
 </body>
 </html>

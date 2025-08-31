@@ -1,0 +1,23 @@
+
+<div class="modal-header {{ header_class|default:'bg-warning text-dark' }}">
+  <h5 class="modal-title">
+    {% if icon %}<i class="{{ icon }} me-2"></i>{% endif %}
+    {{ title|default:"Confirm Action" }}
+  </h5>
+  <button type="button" class="btn-close {% if 'bg-' in header_class %}btn-close-white{% endif %}"
+          data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <p>{{ message|default:"Are you sure you want to continue?" }}</p>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+    {{ cancel_label|default:"Cancel" }}
+  </button>
+  <form method="post" action="{{ action_url }}">
+    {% csrf_token %}
+    <button type="submit" class="btn {{ confirm_class|default:'btn-primary' }}">
+      {{ confirm_label|default:"Confirm" }}
+    </button>
+  </form>
+</div>

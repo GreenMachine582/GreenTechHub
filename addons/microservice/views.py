@@ -129,7 +129,7 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
     confirm_message = "Are you sure you want to delete this record? This action cannot be undone."
     confirm_label = "Yes, delete"
     confirm_class = "btn-danger"
-    header_class = "bg-danger text-white"
+    header_class = "bg-warning text-white"
     icon = "fas fa-triangle-exclamation"
 
     def _is_ajax(self, request):

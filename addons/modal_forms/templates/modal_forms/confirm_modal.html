@@ -4,8 +4,13 @@
     {% if icon %}<i class="{{ icon }} me-2"></i>{% endif %}
     {{ title|default:"Confirm Action" }}
   </h5>
-  <button type="button" class="btn-close {% if 'bg-' in header_class %}btn-close-white{% endif %}"
-          data-bs-dismiss="modal" aria-label="Close"></button>
+  <button type="button"
+          class="btn p-0 border-0 bg-transparent ms-auto"
+          data-bs-dismiss="modal"
+          aria-label="Close">
+    <i class="fa-solid fa-xmark fs-4 {% if 'bg-' in header_class %}text-white{% else %}text-body{% endif %}" aria-hidden="true"></i>
+    <span class="visually-hidden">Close</span>
+  </button>
 </div>
 <div class="modal-body">
   <p>{{ message|default:"Are you sure you want to continue?" }}</p>

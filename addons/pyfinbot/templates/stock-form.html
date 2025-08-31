@@ -22,18 +22,15 @@
 
 {% block main %}
   <section class="section stock">
-    {% if record_id %}
-      <form id="delete-form" method="post" action="{% url 'pyfinbot-stock-delete' record_id=record_id %}"
-            style="display: none;">
-        {% csrf_token %}
-      </form>
-    {% endif %}
     <form method="post" action="">
       {% csrf_token %}
 
       {% if record_id %}
         {% bootstrap_button "Save" button_type="submit" %}
-        {% bootstrap_button "Delete" button_type="submit" form="delete-form" button_class="btn-danger" onclick="return confirm('Really delete this record?');" %}
+        <a class="btn btn-danger js-modal"
+           data-form-url="{% url 'pyfinbot-stock-delete' record_id=record_id %}">
+          Delete
+        </a>
       {% else %}
         {% bootstrap_button "Create" button_type="submit" button_class="btn-success" %}
       {% endif %}

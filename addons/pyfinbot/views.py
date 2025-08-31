@@ -50,6 +50,10 @@ class StockDeleteView(BaseMicroserviceDeleteView):
     delete_path = "/stocks/{id}/"
     success_url = reverse_lazy("pyfinbot-stock-list")
 
+    confirm_title = "Delete Stock"
+    confirm_message = "This will permanently remove this stock."
+    confirm_label = "Delete permanently"
+
 
 class TransactionListView(BaseMicroserviceListView):
     template_name = "transaction-list.html"

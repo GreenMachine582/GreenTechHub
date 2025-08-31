@@ -29,18 +29,11 @@
          class="btn btn-sm btn-warning me-1">
         <i class="fa-solid fa-pencil"></i>
       </a>
-      <form method="post"
-            action="/pyfinbot/stock/delete/${id}/"
-            style="display:inline;">
-        <input type="hidden"
-               name="csrfmiddlewaretoken"
-               value="${csrftoken}">
-        <button type="submit"
-                class="btn btn-sm btn-danger"
-                onclick="return confirm('Really delete?');">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </form>
+      <button type="button"
+              class="btn btn-sm btn-danger js-modal"
+              data-form-url="/pyfinbot/stock/delete/${id}/">
+        <i class="fa-solid fa-trash"></i>
+      </button>
     </script>
   </section>
 {% endblock %}

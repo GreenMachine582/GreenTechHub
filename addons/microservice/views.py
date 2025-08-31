@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 
 from django.contrib import messages
-from django.shortcuts import redirect
+from django.http import JsonResponse, HttpResponseNotAllowed
+from django.shortcuts import redirect, render, resolve_url
 from django.views import View
 from django.views.generic import TemplateView, FormView
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
@@ -108,14 +108,49 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
 
 class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
     """
-    Deletes a single record via microservice and redirects.
+    DELETE via microservice with modal confirm support.
+
     Subclasses must set:
       - service_prefix (e.g. "pyfinbot")
       - delete_path   (e.g. "/stocks/{id}/")
-      - success_url   (could be reverse_lazy("…"))
+      - success_url   (reverse_lazy(...) or name/URL)
+
+    Optional modal customisations:
+      - confirm_template_name (body-only)
+      - confirm_title, confirm_message, confirm_label
+      - confirm_class, header_class, icon
     """
-    delete_path: str    # URL template, e.g. "/stocks/{id}/"
-    success_url: str    # name or absolute URL
+    delete_path: str
+    success_url: str
+
+    # ===== modal config (used for GET when requested via AJAX) =====
+    confirm_template_name = "modal_forms/confirm_modal.html"
+    confirm_title = "Confirm Delete"
+    confirm_message = "Are you sure you want to delete this record? This action cannot be undone."
+    confirm_label = "Yes, delete"
+    confirm_class = "btn-danger"
+    header_class = "bg-danger text-white"
+    icon = "fas fa-triangle-exclamation"
+
+    def _is_ajax(self, request):
+        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    def _success_url(self):
+        return resolve_url(self.success_url)
+
+    def get(self, request, *args, **kwargs):
+        if not self._is_ajax(request):
+            return HttpResponseNotAllowed(["POST"])
+        context = {
+            "action_url": request.path,
+            "title": self.confirm_title,
+            "message": self.confirm_message,
+            "confirm_label": self.confirm_label,
+            "confirm_class": self.confirm_class,
+            "header_class": self.header_class,
+            "icon": self.icon,
+        }
+        return render(request, self.confirm_template_name, context)
 
     def post(self, request, *args, **kwargs):
         record_id = kwargs.get("record_id")
@@ -123,9 +158,16 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
             self.getClient().request(
                 path=self.delete_path.format(id=record_id),
                 method="DELETE",
-                user=request.user
+                user=request.user,
             )
-            messages.success(request, "Record deleted successfully.")
         except MicroserviceError as e:
+            if self._is_ajax(request):
+                return JsonResponse({"ok": False, "error": str(e)}, status=400)
             messages.error(request, f"Failed to delete record: {e}")
-        return redirect(self.success_url)
+            return redirect(self._success_url())
+
+        # success
+        if self._is_ajax(request):
+            return JsonResponse({"ok": True, "redirect_url": self._success_url()})
+        messages.success(request, "Record deleted successfully.")
+        return redirect(self._success_url())

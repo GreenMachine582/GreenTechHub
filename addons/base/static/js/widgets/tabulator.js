@@ -1,5 +1,31 @@
 import { select } from "../helpers.js";
 
+// Map Tabulator header-filter ops -> SAF ops
+const TAB_TO_SAF_OP = Object.freeze({
+  "=": "==", "==": "==", "!=": "!=",
+  ">": ">", ">=": ">=", "<": "<", "<=": "<=",
+  like: "ilike", starts: "ilike", ends: "ilike", in: "in",
+});
+
+function likeWrap(op, val) {
+  if (val == null) return val;
+  if (op === 'contains' || op === 'like')   return `%${val}%`;
+  if (op === 'startswith') return `${val}%`;
+  if (op === 'endswith')   return `%${val}`;
+  return val;
+}
+
+function normalizeValue(val, op) {
+  if (val == null) return null;
+  if (Array.isArray(val)) return val.filter(v => v != null && String(v).trim() !== "");
+  const s = String(val).trim();
+  if (!s) return null;
+  if (s.toLowerCase() === "true") return true;
+  if (s.toLowerCase() === "false") return false;
+  if (op === "in") return s.split(",").map(x => x.trim()).filter(Boolean);
+  return s;
+}
+
 const getCookie = (name) => {
   let val = null;
   if (document.cookie && document.cookie !== "") {
@@ -43,10 +69,17 @@ function resolveConfig(el) {
     minReqGapMs: 500,        // throttle same requests
     _filters: null,          // latest from qb:search
     showSummary: defaults.showSummary !== false,
+    includeQB: defaults.includeQB !== false,
   };
 }
 
 // ----- QueryBuilder integration -----
+function parseSAF(v) {
+  if (!v) return null;
+  if (typeof v === "object") return v;
+  try { return JSON.parse(v); } catch { return null; }
+}
+
 function findHiddenFiltersInput() {
   return (
     document.querySelector("#qb-filters") ||
@@ -54,15 +87,39 @@ function findHiddenFiltersInput() {
   );
 }
 
-function filtersParam(cfg) {
-  // 1) live payload from qb:search (fast path)
-  if (typeof cfg._filters === "string" && cfg._filters.trim() !== "") {
-    return cfg._filters;
-  }
-  // 2) hidden input (kept in sync by QueryBuilder.emit)
-  const hidden = findHiddenFiltersInput();
-  if (hidden && hidden.value) return hidden.value;
+function filtersParam(cfg, params) {
+  const raw = (params && Array.isArray(params.filter)) ? params.filter : [];
+
+  // Convert Tabulator filters -> sqlalchemy-filters style (AND group)
+  const leaves = raw.map(({ field, type, value }) => {
+      const t = (type || "like").toLowerCase();
+      const safOp = TAB_TO_SAF_OP[t] || "ilike";
+      let v = normalizeValue(value, safOp);
+      if (v == null || (Array.isArray(v) && !v.length)) return null;
+      if (safOp === "ilike") v = likeWrap(t, v);
+      return { field, op: safOp, value: v };
+    })
+    .filter(Boolean);
+
+  const rulesSpec = leaves.length ? { and: leaves } : null;
+
+  // QB spec from live payload or hidden input
+  const qbSpec = parseSAF(cfg._filters) ||
+    parseSAF((() => { const h = findHiddenFiltersInput(); return h && h.value; })());
+
+  if (rulesSpec && qbSpec) return JSON.stringify({ and: [ qbSpec, rulesSpec ] });
+  if (rulesSpec)            return JSON.stringify(rulesSpec);
+  if (qbSpec)               return JSON.stringify(qbSpec);
   return null;
+}
+
+function stableSorters(sorters) {
+  if (!Array.isArray(sorters) || !sorters.length) return null;
+  const clean = sorters.map(s => ({
+    field: String(s.field || "").trim(),
+    dir: (s.dir || "asc").toLowerCase() === "desc" ? "desc" : "asc",
+  })).filter(s => s.field);
+  return clean.length ? JSON.stringify(clean) : null;
 }
 
 function buildFinalURL(baseURL, params, cfg) {
@@ -72,13 +129,17 @@ function buildFinalURL(baseURL, params, cfg) {
   if (params.page != null) u.searchParams.set("page", params.page);
   if (params.size != null) u.searchParams.set("size", params.size);
 
-  // First sorter -> sort/dir
-  const firstSort = (params.sorters && params.sorters[0]) || {};
-  if (firstSort.field) u.searchParams.set("sort", firstSort.field);
-  if (firstSort.dir)   u.searchParams.set("dir", firstSort.dir);
+  const sortersJson = stableSorters(params.sort);
+  if (sortersJson) {
+    u.searchParams.set("sorters", sortersJson);
+  } else {
+    // legacy single-field fallback (optional; server will fallback anyway)
+    const first = (params.sort && params.sort[0]) || {};
+    if (first.field) u.searchParams.set("sort", (first.dir === "desc" ? "-" : "") + first.field);
+  }
 
   // Filters from QB (raw QB JSON for now)
-  const f = filtersParam(cfg);
+  const f = filtersParam(cfg, params);
   if (f) {
     u.searchParams.set("filters", f);
     params.__filters__ = f; // influence dedupe key
@@ -136,14 +197,12 @@ function bindQBSearch(table, cfg, el) {
 
 // Build a stable key for dedup/throttle
 function buildRequestKey(finalUrl, params) {
-  const firstSort = (params.sorters && params.sorters[0]) || {};
   return JSON.stringify({
     url: finalUrl,
     page: params.page,
     size: params.size,
-    sort: firstSort.field || null,
-    dir:  firstSort.dir   || null,
     filters: params.__filters__ || null,
+    sorters: stableSorters(params.sorters) || "[]",
   });
 }
 
@@ -216,6 +275,8 @@ const applyTabulatorWidget = (el, csrftoken) => {
       return runFetch();
     },
 
+    filterMode: "remote",
+    sortMode: "remote",
     layout: "fitColumns",
     placeholder: "No records found.",
     columns: cfg.columns,
@@ -240,7 +301,9 @@ const applyTabulatorWidget = (el, csrftoken) => {
     });
   });
 
-  bindQBSearch(table, cfg, el);
+  if (cfg.includeQB) {
+    bindQBSearch(table, cfg, el);
+  }
 
   // expose and return
   el._tabulator = table;

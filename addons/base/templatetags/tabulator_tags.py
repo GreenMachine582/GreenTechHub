@@ -73,6 +73,7 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
         "pageSize": resolved_page_size,
         "templateColumns": resolved_template_columns,
         "showSummary": True,
+        "includeQB": include_qb,
     }
     if resolved_filters is not None:
         # allow dict OR querystring string

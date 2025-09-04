@@ -116,21 +116,21 @@ function resolveConfig(el) {
   };
 }
 
-// ----- QueryBuilder integration -----
+/* --------------- QB + Filters --------------- */
 function parseSAF(v) {
   if (!v) return null;
   if (typeof v === "object") return v;
   try { return JSON.parse(v); } catch { return null; }
 }
 
-function findHiddenFiltersInput() {
+function findHiddenFiltersInput(root = document) {
   return (
-    document.querySelector("#qb-filters") ||
-    document.querySelector('input[type="hidden"][name="filters"]')
+    root.querySelector("#qb-filters") ||
+    root.querySelector('input[type="hidden"][name="filters"]')
   );
 }
 
-function filtersParam(cfg, params) {
+function filtersParam(cfg, params, root = document) {
   const raw = (params && Array.isArray(params.filter)) ? params.filter : [];
 
   // Convert Tabulator filters -> sqlalchemy-filters style (AND group)
@@ -141,14 +141,13 @@ function filtersParam(cfg, params) {
       if (v == null || (Array.isArray(v) && !v.length)) return null;
       if (safOp === "ilike") v = likeWrap(t, v);
       return { field, op: safOp, value: v };
-    })
-    .filter(Boolean);
+    }).filter(Boolean);
 
   const rulesSpec = leaves.length ? { and: leaves } : null;
 
   // QB spec from live payload or hidden input
   const qbSpec = parseSAF(cfg._filters) ||
-    parseSAF((() => { const h = findHiddenFiltersInput(); return h && h.value; })());
+    parseSAF((() => { const h = findHiddenFiltersInput(root); return h && h.value; })());
 
   if (rulesSpec && qbSpec) return JSON.stringify({ and: [ qbSpec, rulesSpec ] });
   if (rulesSpec)            return JSON.stringify(rulesSpec);
@@ -156,8 +155,15 @@ function filtersParam(cfg, params) {
   return null;
 }
 
-function stableSorters(sorters) {
-  if (!Array.isArray(sorters) || !sorters.length) return null;
+/* --------------- Sorters + URL --------------- */
+function extractSorters(params = {}) {
+  return Array.isArray(params.sorters) ? params.sorters :
+         Array.isArray(params.sort)    ? params.sort    : [];
+}
+
+function stableSorters(sortersLike) {
+  const sorters = Array.isArray(sortersLike) ? sortersLike : [];
+  if (!sorters.length) return null;
   const clean = sorters.map(s => ({
     field: String(s.field || "").trim(),
     dir: (s.dir || "asc").toLowerCase() === "desc" ? "desc" : "asc",
@@ -165,24 +171,23 @@ function stableSorters(sorters) {
   return clean.length ? JSON.stringify(clean) : null;
 }
 
-function buildFinalURL(baseURL, params, cfg) {
+function buildFinalURL(baseURL, params, cfg, root = document) {
   const u = new URL(baseURL, window.location.origin);
 
   // Remote pagination params from Tabulator
   if (params.page != null) u.searchParams.set("page", params.page);
   if (params.size != null) u.searchParams.set("size", params.size);
 
-  const sortersJson = stableSorters(params.sort);
+  const sortersJson = stableSorters(extractSorters(params));
   if (sortersJson) {
     u.searchParams.set("sorters", sortersJson);
   } else {
-    // legacy single-field fallback (optional; server will fallback anyway)
-    const first = (params.sort && params.sort[0]) || {};
+    const first = extractSorters(params)[0] || {};
     if (first.field) u.searchParams.set("sort", (first.dir === "desc" ? "-" : "") + first.field);
   }
 
   // Filters from QB (raw QB JSON for now)
-  const f = filtersParam(cfg, params);
+  const f = filtersParam(cfg, params, root);
   if (f) {
     u.searchParams.set("filters", f);
     params.__filters__ = f; // influence dedupe key
@@ -192,6 +197,7 @@ function buildFinalURL(baseURL, params, cfg) {
   return u.toString();
 }
 
+/* --------------- Template formatters --------------- */
 // formatter-factory: interpolate ${…} → rowData[…]
 function applyTemplateFormatter(table, columnName, templateStr) {
   table.updateColumnDefinition(columnName, {
@@ -211,17 +217,17 @@ function applyTemplateFormatter(table, columnName, templateStr) {
 }
 
 // fetch a <script type="text/template"> by ID
-function applyTemplateFormatterById(table, columnName, tplId) {
-  const tpl = document.getElementById(tplId);
+function applyTemplateFormatterById(table, columnName, tplId, root) {
+  const tpl = root.querySelector(`#${tplId}`);
   if (!tpl) {
-    console.error(`Tabulator template "${tplId}" not found`);
+    console.error(`Tabulator template "${tplId}" not found within root`, root);
     return;
   }
   applyTemplateFormatter(table, columnName, tpl.innerHTML);
 }
 
-function bindQBSearch(table, cfg, el) {
-  const scopeEl = (cfg.qbScope ? document.querySelector(cfg.qbScope) : null) || document;
+function bindQBSearch(table, cfg, el, root) {
+  const scopeEl = cfg.qbScope ? document.querySelector(cfg.qbScope) : root;
   const refresh = debounce(() => table.setData(), 150);
 
   const handler = (e) => {
@@ -245,12 +251,15 @@ function buildRequestKey(finalUrl, params) {
     page: params.page,
     size: params.size,
     filters: params.__filters__ || null,
-    sorters: stableSorters(params.sorters) || "[]",
+    sorters: stableSorters(extractSorters(params)) || "[]",
   });
 }
 
 const applyTabulatorWidget = (el, csrftoken) => {
+  if (!el || el._tabulator) return el?._tabulator; // don't double init
+
   const cfg = resolveConfig(el);
+  const root = closestModal(el); // modal element or document
   el.classList.add("tabulator-bootstrap5");
 
   const paginationCounterFn = (pageSize, currentRow, currentPage, totalRows, totalPages) => {
@@ -284,8 +293,8 @@ const applyTabulatorWidget = (el, csrftoken) => {
       last_row:  "total",  // overall row count (optional)
     },
 
-    ajaxRequestFunc: (url, config, params) => {
-      const finalUrl = buildFinalURL(url, params, cfg);
+    ajaxRequestFunc: (url, config, params = {}) => {
+      const finalUrl = buildFinalURL(url, params, cfg, root);
 
       // throttle identical requests
       const now = Date.now();
@@ -323,7 +332,7 @@ const applyTabulatorWidget = (el, csrftoken) => {
     layout: "fitColumns",
     placeholder: "No records found.",
     columns: cfg.columns,
-  }
+  };
 
   if (cfg.showSummary) {
     const summarySelector = `#${el.id}-summary`;
@@ -340,26 +349,68 @@ const applyTabulatorWidget = (el, csrftoken) => {
   // Apply any template formatters
   table.on("tableBuilt", () => {
     (cfg.templateColumns || []).forEach(({ field, templateId }) => {
-      applyTemplateFormatterById(table, field, templateId);
+      applyTemplateFormatterById(table, field, templateId, root);
     });
+    el._tableBuilt = true;
   });
 
   if (cfg.includeQB) {
-    bindQBSearch(table, cfg, el);
+    bindQBSearch(table, cfg, el, root);
   }
 
   // expose and return
   el._tabulator = table;
+  el._root = root;
+  el._tabulatorDestroy = () => {
+    try { el._qbSearchDetach?.(); } catch {}
+    try { table.destroy(); } catch {}
+    el._tabulator = null;
+    el._tableBuilt = false;
+  };
+
   return table;
 };
 
+/* --------------- Public init helpers --------------- */
+function initWithin(root = document) {
+  const csrftoken = getCookie("csrftoken");
+  select(".tabulator-widget", true, root).forEach((el) => {
+    applyTabulatorWidget(el, csrftoken);
+  });
+}
+
+// redraw only when safe: after built AND visible
+function safeRedraw(el) {
+  const t = el?._tabulator;
+  if (!t) return;
+  const doRedraw = () => { try { t.redraw(true); } catch {} };
+  if (el._tableBuilt && el.offsetParent) doRedraw();
+  else t.on?.("tableBuilt", () => { if (el.offsetParent) doRedraw(); });
+}
+
+function enableModalAutoInit() {
+  if (!window.bootstrap?.Modal) return;
+
+  document.addEventListener("shown.bs.modal", (e) => {
+    const modalEl = e.target;
+    initWithin(modalEl);
+    // Redraw all tables once visible (fixes width calcs)
+    select(".tabulator-widget", true, modalEl).forEach((el) => safeRedraw(el));
+  });
+
+  document.addEventListener("hidden.bs.modal", (e) => {
+    const modalEl = e.target;
+    select(".tabulator-widget", true, modalEl).forEach((el) => el._tabulatorDestroy?.());
+  });
+}
+
 const init = () => {
   document.addEventListener("DOMContentLoaded", () => {
-    const csrftoken = getCookie("csrftoken");
-    select(".tabulator-widget", true).forEach((el) => {
-      applyTabulatorWidget(el, csrftoken);
-    });
+    // Page-level widgets
+    initWithin(document);
+    // Auto-manage widgets inside Bootstrap modals
+    enableModalAutoInit();
   });
 };
 
-export const Tabulator = { init, applyTabulatorWidget };
+export const Tabulator = { init, applyTabulatorWidget, initWithin, enableModalAutoInit };

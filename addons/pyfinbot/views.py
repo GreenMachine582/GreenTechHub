@@ -86,6 +86,7 @@ class TransactionListView(LoginRequiredMixin, TemplateView):
         ]
         return ctx
 
+
 class TransactionFormView(BaseMicroserviceFormView):
     form_class = TransactionForm
     template_name = "transaction-form.html"
@@ -93,6 +94,38 @@ class TransactionFormView(BaseMicroserviceFormView):
     service_prefix = "pyfinbot"
     create_path = "/transactions/"
     update_path = "/transactions/{id}/"
+
+    def transform_initial(self, initial: dict) -> dict:
+        """
+        Flatten nested 'stock' from the API payload into the related form fields.
+        Example API record sample provided:
+          {'stock': {'market': 'ASX', 'name': 'AURORA...', 'symbol': '1AE'}, ...}
+        """
+        stock = (initial or {}).get("stock") or {}
+        initial = dict(initial or {})
+        initial.update({
+            "stock_symbol": stock.get("symbol") or "",
+            "stock_market": stock.get("market") or "",
+            "stock_name": stock.get("name") or "",
+        })
+        return super().transform_initial(initial)
+
+    def transform_payload(self, cleaned_data: dict) -> dict:
+        """
+        Ensure we have stock_id (resolve from symbol/market/name if needed),
+        then remove UI-only fields and read-only calculated ones.
+        """
+        data = dict(cleaned_data)
+
+        # 1) drop related input helpers; backend only needs stock_id
+        for k in ("stock_symbol", "stock_market", "stock_name"):
+            data.pop(k, None)
+
+        # 2) drop read-only/calculated fields (backend will compute/ignore)
+        for k in ("total_value", "cost"):
+            data.pop(k, None)
+
+        return super().transform_payload(data)
 
 
 class TransactionDeleteView(BaseMicroserviceDeleteView):

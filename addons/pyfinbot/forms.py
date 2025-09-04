@@ -21,7 +21,11 @@ class StockForm(forms.Form):
 
 class TransactionForm(forms.Form):
     user_id = forms.IntegerField(label="User ID", required=False, disabled=True)
-    stock_id = forms.IntegerField(label="Stock ID")
+    stock_id = forms.IntegerField(label="Stock ID", required=False)
+    stock_symbol = forms.CharField(label="Stock Symbol", required=False)
+    stock_market = forms.CharField(label="Stock Market", required=False)
+    stock_name = forms.CharField(label="Stock Name", required=False)
+
     transaction_date = forms.DateField(label="Transaction Date", required=False, disabled=True,
                                        widget=forms.DateInput(attrs={'type': 'date'}))
     type = forms.ChoiceField(label="Transaction Type", choices=[('buy', 'Buy'), ('sell', 'Sell')])

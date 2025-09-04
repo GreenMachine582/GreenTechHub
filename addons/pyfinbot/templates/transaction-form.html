@@ -38,12 +38,36 @@
       {% bootstrap_button "Cancel" button_type="link" href=cancel_url button_class="btn-secondary" %}
 
       <div class="divider"></div>
+      <input type="hidden" id="stock_id" name="stock_id" value="{{ form.stock_id.value|default:'' }}"/>
 
       <div class="mb-3">
         <label for="stock_id" class="form-label">Stock ID</label>
         <input type="number" id="stock_id" name="stock_id" class="form-control"
                value="{{ form.stock_id.value|default:'' }}" required {% if record_id %} readonly disabled {% endif %}>
       </div>
+      {% if record_id %}
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label for="stock_symbol" class="form-label">Stock Symbol</label>
+            <input type="text" id="stock_symbol" name="stock_symbol" class="form-control"
+                   value="{{ form.stock_symbol.value|default:'' }}"
+                   {% if record_id %} readonly disabled {% endif %}>
+          </div>
+          <div class="col-md-3">
+            <label for="stock_market" class="form-label">Market</label>
+            <input type="text" id="stock_market" name="stock_market" class="form-control"
+                   value="{{ form.stock_market.value|default:'' }}"
+                   placeholder="e.g. ASX"
+                   {% if record_id %} readonly disabled {% endif %}>
+          </div>
+          <div class="col-md-6">
+            <label for="stock_name" class="form-label">Name</label>
+            <input type="text" id="stock_name" name="stock_name" class="form-control"
+                   value="{{ form.stock_name.value|default:'' }}"
+                   {% if record_id %} readonly disabled {% endif %}>
+          </div>
+        </div>
+      {% endif %}
 
       {% if record_id %}
         <div class="mb-3">

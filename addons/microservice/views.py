@@ -85,6 +85,14 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
     create_path: str    # e.g. "/stocks/"
     update_path: str    # e.g. "/stocks/{id}/"
 
+    def transform_initial(self, initial: dict) -> dict:
+        """Subclasses can adjust initial data before rendering the form."""
+        return initial
+
+    def transform_payload(self, cleaned_data: dict) -> dict:
+        """Subclasses can adjust cleaned_data before sending to microservice."""
+        return cleaned_data
+
     def get_initial(self):
         initial = super().get_initial()
         record_id = self.kwargs.get("record_id")
@@ -98,7 +106,9 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
                 initial.update(resp.json() or {})
             except MicroserviceError as e:
                 messages.error(self.request, f"Failed to load record: {e}")
-        return initial
+
+        # allow subclasses to normalize/flatten etc.
+        return self.transform_initial(initial)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -117,7 +127,10 @@ class BaseMicroserviceFormView(LoginRequiredMixin, MicroserviceMixin, FormView):
         else:
             path, method = self.create_path, "POST"
 
-        payload = _makeJsonable(form.cleaned_data)
+        # let subclasses transform cleaned_data first
+        cleaned = self.transform_payload(dict(form.cleaned_data))
+
+        payload = _makeJsonable(cleaned)
         try:
             self.getClient().request(
                 path=path,

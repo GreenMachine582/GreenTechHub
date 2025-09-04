@@ -1,4 +1,4 @@
-import { select } from "../helpers.js";
+import { select, safeParseJSON, debounce, getCookie } from "../helpers.js";
 
 // Map Tabulator header-filter ops -> SAF ops
 const TAB_TO_SAF_OP = Object.freeze({
@@ -26,50 +26,93 @@ function normalizeValue(val, op) {
   return s;
 }
 
-const getCookie = (name) => {
-  let val = null;
-  if (document.cookie && document.cookie !== "") {
-    document.cookie.split(";").forEach((c) => {
-      c = c.trim();
-      if (c.startsWith(name + "=")) {
-        val = decodeURIComponent(c.slice(name.length + 1));
+const deepMerge = (base, ...rest) => {
+  const out = {...base};
+  for (const src of rest) {
+    if (!src || typeof src !== "object") continue;
+    for (const [k, v] of Object.entries(src)) {
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        out[k] = deepMerge(out[k] || {}, v);
+      } else {
+        out[k] = v;
       }
-    });
+    }
   }
-  return val;
+  return out;
 };
 
-const debounce = (fn, wait = 300) => {
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), wait);
-  };
+const toBool = (v, fallback) => {
+  if (v == null) return fallback;
+  if (typeof v === "boolean") return v;
+  const s = String(v).trim().toLowerCase();
+  if (s === "true" || s === "1" || s === "yes" || s === "on")  return true;
+  if (s === "false"|| s === "0" || s === "no"  || s === "off") return false;
+  return fallback;
 };
 
+const pickInt = (v, fallback) => {
+  if (v == null) return fallback;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+};
+
+// Modal root helper
+const closestModal = (el) => el.closest?.(".modal") || document;
+
+// Try to load JSON config from a <script type="application/json"> node
+const loadScriptConfig = (el) => {
+  // explicit data-config-src selector OR default to #{id}-config if id exists
+  const sel = el.getAttribute("data-config-src") || (el.id ? `#${el.id}-config` : null);
+  if (!sel) return null;
+  const node = closestModal(el)?.querySelector(sel);
+  if (!node) return null;
+  const type = (node.getAttribute("type") || "").toLowerCase();
+  if (type && type !== "application/json") return null; // only parse JSON script
+  return safeParseJSON(node.textContent, null);
+};
+
+/* ----------------- Config ----------------- */
 function resolveConfig(el) {
-  const defaults = window.tabulatorDefaults?.[el.id] || {};
+  // 1) Config from a JSON script block
+  const scriptCfg = loadScriptConfig(el);
 
-  // allow optional data-* overrides
-  const pageSize = el.dataset.pageSize
-    ? parseInt(el.dataset.pageSize, 10)
-    : (defaults.pageSize || 20);
+  // 2) Inline data-config JSON on the element itself
+  const dataCfg = el.dataset.config ? safeParseJSON(el.dataset.config, null) : null;
 
-  const columns = el.dataset.columns
-    ? JSON.parse(el.dataset.columns)
-    : (Array.isArray(defaults.columns) ? defaults.columns.slice() : []);
-  const qbScope = el.getAttribute("data-qb-scope") || defaults.qbScope || null;
+  // Merge precedence: data-config > script-config > window-defaults
+  const defaults = deepMerge({}, scriptCfg || {}, dataCfg || {});
+
+  // 3) Inline overrides (highest precedence for common fields)
+  const columnsAttr         = el.dataset.columns ? safeParseJSON(el.dataset.columns, null) : null;
+  const templateColumnsAttr = el.dataset.templateColumns ? safeParseJSON(el.dataset.templateColumns, null) : null;
+
+  const path     = el.dataset.path || defaults.path || ""; // REQUIRED for remote data
+  const pageSize = pickInt(el.dataset.pageSize, pickInt(defaults.pageSize, 20));
+  const qbScope  = el.getAttribute("data-qb-scope") || defaults.qbScope || null;
+
+  // booleans: dataset wins if present, else defaults, else sensible fallback
+  const showSummary = toBool(el.dataset.showSummary, toBool(defaults.showSummary, true));
+  const includeQB   = toBool(el.dataset.includeQb,  toBool(defaults.includeQB,   true));
+
+  // final columns
+  const columns = Array.isArray(columnsAttr) ? columnsAttr
+                 : Array.isArray(defaults.columns) ? defaults.columns.slice()
+                 : [];
+
+  const templateColumns = Array.isArray(templateColumnsAttr) ? templateColumnsAttr
+                         : Array.isArray(defaults.templateColumns) ? defaults.templateColumns
+                         : [];
 
   return {
-    path: el.dataset.path || defaults.path,
+    path,
     columns,
     pageSize,
-    templateColumns: defaults.templateColumns || [],
+    templateColumns,
     qbScope,
-    minReqGapMs: 500,        // throttle same requests
-    _filters: null,          // latest from qb:search
-    showSummary: defaults.showSummary !== false,
-    includeQB: defaults.includeQB !== false,
+    minReqGapMs: pickInt(defaults.minReqGapMs, 500),
+    _filters: null,
+    showSummary,
+    includeQB,
   };
 }
 

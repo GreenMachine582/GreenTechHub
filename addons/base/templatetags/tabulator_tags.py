@@ -17,7 +17,7 @@ def infer_qb_fields_from_columns(columns):
     }
     qb_fields = []
 
-    for col in columns:
+    for col in (columns or []):
         if "field" not in col or "title" not in col or col["field"] in ("actions", "action", "edit", "delete"):
             continue  # skip non-data or action columns
 
@@ -81,7 +81,8 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
     if resolved_filter_form:
         cfg["filterForm"] = resolved_filter_form
 
-    data_attrs = []
+    # data-* hints for the JS
+    data_attrs = [f'data-config-src="#{table_id}-config"']
     if isinstance(resolved_filters, str):
         # querystring style can be placed as a data-attribute
         data_attrs.append(f'data-filters="{resolved_filters}"')
@@ -107,10 +108,7 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
     html.extend([
         f'<div id="{table_id}-summary" class="tabulator-summary small text-muted mt-2"></div>',
         f'<div id="{table_id}" class="tabulator-widget" {" ".join(data_attrs)}></div>',
-        "<script>",
-        "  window.tabulatorDefaults = window.tabulatorDefaults || {};",
-        f'  window.tabulatorDefaults["{table_id}"] = {json.dumps(cfg)};',
-        "</script>",
+        f'<script id="{table_id}-config" type="application/json">{json.dumps(cfg)}</script>',
     ])
 
     return mark_safe("\n".join(html))

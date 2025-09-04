@@ -56,3 +56,38 @@ export const onclick = (el, listener) => {
 export const onscroll = (el, listener) => {
   el.addEventListener('scroll', listener)
 }
+
+/**
+ * Debounce function: returns a function, that, as long as it continues to be invoked, will not
+ * be triggered. The function will be called after it stops being called for N milliseconds.
+ */
+export const debounce = (fn, wait = 300) => {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+};
+
+/**
+ * Safe JSON parse
+ */
+export const safeParseJSON = (txt, fallback = null) => {
+  try { return JSON.parse(txt); } catch { return fallback; }
+};
+
+/**
+ * Get cookie by name
+ */
+export const getCookie = (name) => {
+  let val = null;
+  if (document.cookie && document.cookie !== "") {
+    document.cookie.split(";").forEach((c) => {
+      c = c.trim();
+      if (c.startsWith(name + "=")) {
+        val = decodeURIComponent(c.slice(name.length + 1));
+      }
+    });
+  }
+  return val;
+};

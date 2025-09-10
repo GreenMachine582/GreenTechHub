@@ -1,0 +1,3 @@
+{% load static %}
+{% static 'js/pickers/stock_picker.js' as stock_picker_js %}
+{% include "widgets/picker_tabulator_modal.html" with title="Select Stock" picker_consumer_js=stock_picker_js %}

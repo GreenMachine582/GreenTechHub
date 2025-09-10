@@ -55,6 +55,17 @@ class StockDeleteView(BaseMicroserviceDeleteView):
     confirm_label = "Delete permanently"
 
 
+class StockPickerModalView(StockListView):
+    template_name = "stock-picker-modal.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Remove action column for picker
+        ctx["columns"] = [x for x in ctx["columns"] if x["field"] != "actions"]
+        ctx["template_columns"] = []
+        return ctx
+
+
 class TransactionListView(LoginRequiredMixin, TemplateView):
     template_name = "transaction-list.html"
     list_path = "pyfinbot/transactions/"

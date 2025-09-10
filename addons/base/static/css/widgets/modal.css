@@ -1,0 +1,43 @@
+
+.modal-dialog {
+  margin: 1rem auto;
+}
+.modal-content { height: 100%; }
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Tabulator widget inside modal */
+.modal-body .tabulator-widget {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 50vh;
+  overflow: auto;
+}
+
+/* Tableholder scroll area */
+.modal-body .tabulator-widget .tabulator-tableholder {
+  max-height: 50%;
+  overflow: auto;
+}
+
+/* Sticky header/footer for usability */
+.modal-body .tabulator-widget .tabulator-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.modal-body .tabulator-widget .tabulator-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: inherit;
+}
+
+/* Optional summary row */
+.modal-body .tabulator-widget-summary {
+  flex: 0 0 auto;
+}

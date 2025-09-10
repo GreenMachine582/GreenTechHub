@@ -53,7 +53,7 @@ const toBool = (v, fallback) => {
 const pickInt = (v, fallback) => {
   if (v == null) return fallback;
   const n = parseInt(v, 10);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  return Number.isFinite(n) ? n : fallback;
 };
 
 // Modal root helper
@@ -89,6 +89,7 @@ function resolveConfig(el) {
   const path     = el.dataset.path || defaults.path || ""; // REQUIRED for remote data
   const pageSize = pickInt(el.dataset.pageSize, pickInt(defaults.pageSize, 20));
   const qbScope  = el.getAttribute("data-qb-scope") || defaults.qbScope || null;
+  const selectable   = pickInt(el.dataset.selectable,  pickInt(defaults.selectable,   0));
 
   // booleans: dataset wins if present, else defaults, else sensible fallback
   const showSummary = toBool(el.dataset.showSummary, toBool(defaults.showSummary, true));
@@ -113,6 +114,7 @@ function resolveConfig(el) {
     _filters: null,
     showSummary,
     includeQB,
+    selectable
   };
 }
 
@@ -342,6 +344,10 @@ const applyTabulatorWidget = (el, csrftoken) => {
     } else {
       console.warn(`Tabulator summary element ${summarySelector} not found; disabling counter.`);
     }
+  }
+
+  if (cfg.selectable > 0 || cfg.selectable === -1) {
+    options.selectableRows = cfg.selectable === -1 ? true : cfg.selectable;
   }
 
   const table = new window.Tabulator(el, options);

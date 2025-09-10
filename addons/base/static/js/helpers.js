@@ -44,18 +44,10 @@ export const on = (type, el, listener, all = false, options) => {
 };
 
 /**
- * Easy on click event listener
+ * Easy on event listeners (selector/Node/NodeList supported)
  */
-export const onclick = (el, listener) => {
-  el.addEventListener('click', listener)
-}
-
-/**
- * Easy on scroll event listener
- */
-export const onscroll = (el, listener) => {
-  el.addEventListener('scroll', listener)
-}
+export const onclick  = (el, listener, all=false, options) => on('click',  el, listener, all, options);
+export const onscroll = (el, listener, all=false, options) => on('scroll', el, listener, all, options);
 
 /**
  * Debounce function: returns a function, that, as long as it continues to be invoked, will not

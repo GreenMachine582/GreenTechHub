@@ -1,0 +1,31 @@
+{% extends "modal_forms/base_modal.html" %}
+{% load static %}
+{% load tabulator_tags %}
+
+{# Defaults you can override from children or when including: 
+   title, header_class, table_id, page_size, include_qb, selectable #}
+
+{% block modal_title %}{{ title|default:"Select Item" }}{% endblock %}
+
+{% block modal_body %}
+  {% block picker_table %}
+    {% render_tabulator table_id=table_id|default:"picker-table" page_size=page_size|default:20 include_qb=include_qb|default_if_none:False selectable=selectable|default:1 %}
+  {% endblock %}
+{% endblock %}
+
+{% block modal_footer %}
+  {{ block.super }}
+  <button type="button"
+          class="btn btn-primary"
+          data-role="picker-use"
+          data-picker-table="#{% firstof table_id 'picker-table' %}">
+    <i class="fa-solid fa-check me-1"></i> Use selected
+  </button>
+{% endblock %}
+
+{% block modal_js %}
+  {{ block.super }}
+  {% if picker_consumer_js %}
+    <script type="module" src="{{ picker_consumer_js }}"></script>
+  {% endif %}
+{% endblock %}

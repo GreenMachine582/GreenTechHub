@@ -42,7 +42,7 @@ def infer_qb_fields_from_columns(columns):
 
 @register.simple_tag(takes_context=True)
 def render_tabulator(context, path=None, table_id="records-table", columns=None, page_size=0,
-                     filters=None, filter_form=None, include_qb=True, qb_fields=None):
+                     filters=None, filter_form=None, include_qb=True, qb_fields=None, selectable=0):
     """
     Renders an empty <div> for Tabulator and optionally includes QueryBuilder.
     """
@@ -74,6 +74,7 @@ def render_tabulator(context, path=None, table_id="records-table", columns=None,
         "templateColumns": resolved_template_columns,
         "showSummary": True,
         "includeQB": include_qb,
+        'selectable': selectable,
     }
     if resolved_filters is not None:
         # allow dict OR querystring string

@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import decimal
+import json
 import logging
+from typing import Any, Dict, Optional
 
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseNotAllowed
+from django.core.exceptions import ImproperlyConfigured
+from django.http import (
+    JsonResponse,
+    HttpResponseNotAllowed,
+    HttpRequest,
+)
 from django.shortcuts import redirect, render, resolve_url
 from django.views import View
 from django.views.generic import TemplateView, FormView
@@ -211,3 +218,115 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
             return JsonResponse({"ok": True, "redirect_url": self._success_url()})
         messages.success(request, "Record deleted successfully.")
         return redirect(self._success_url())
+
+
+class BaseMicroserviceActionView(LoginRequiredMixin, MicroserviceMixin, View):
+    """
+    Fire-and-forget style action against a microservice endpoint.
+
+    Subclasses MUST set:
+      - service_prefix  (e.g. "pyfinbot")
+      - action_path     (e.g. "/stocks/sync/{market}")
+        You can use kwargs from the URL in the path via str.format(**kwargs).
+
+    Optional:
+      - method          (default: "POST")
+      - success_url     (default: request.META.get("HTTP_REFERER") or "/")
+      - success_message (shown when non-AJAX)
+      - failure_message (shown when non-AJAX)
+      - extra_headers(self, request, **kwargs) -> dict
+      - build_payload(self, request, **kwargs) -> dict|None
+      - transform_response(self, resp) -> Any   # if you want to massage resp.json()
+    """
+    action_path: str
+    method: str = "POST"
+    success_url: Optional[str] = None
+    success_message: Optional[str] = "Action completed successfully."
+    failure_message: Optional[str] = "Action failed."
+
+    ajax_reload: bool = True  # Clients can use this to decide to reload on success
+
+    def _path(self, **kwargs) -> str:
+        if not getattr(self, "action_path", None):
+            raise ImproperlyConfigured(
+                f"{self.__class__.__name__} requires an `action_path`."
+            )
+        try:
+            return self.action_path.format(**kwargs)
+        except KeyError as e:
+            raise ImproperlyConfigured(
+                f"Missing URL kwarg for action_path formatting: {e}"
+            )
+
+    def _success_url(self, request: HttpRequest) -> str:
+        if self.success_url:
+            return resolve_url(self.success_url)
+        # Fall back to same page / referrer
+        return request.META.get("HTTP_REFERER") or "/"
+
+    def _is_ajax(self, request: HttpRequest) -> bool:
+        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    # --- hooks you may override in subclasses ---
+    def extra_headers(self, request: HttpRequest, **kwargs) -> Dict[str, str]:
+        return {}
+
+    def build_payload(self, request: HttpRequest, **kwargs) -> Optional[Dict[str, Any]]:
+        """
+        If you need to send a body to the microservice, return a dict here.
+        Default: None (no body).
+        """
+        if request.body:
+            try:
+                return json.loads(request.body.decode("utf-8"))
+            except Exception:
+                pass
+        return None
+
+    def transform_response(self, resp):
+        """Return what should go into the JSON 'data' key for AJAX callers."""
+        try:
+            return resp.json()
+        except Exception:
+            return {"status_code": resp.status_code}
+
+    # --- HTTP verbs ---
+    def post(self, request: HttpRequest, *args, **kwargs):
+        path = self._path(**kwargs)
+        client = self.getClient()
+
+        try:
+            resp = client.request(
+                path=path,
+                method=self.method.upper(),
+                user=request.user,
+                json=self.build_payload(request, **kwargs),
+                extra_headers=self.extra_headers(request, **kwargs),
+            )
+        except MicroserviceError as e:
+            _logger.exception("Microservice action failed at %s", path)
+            if self._is_ajax(request):
+                return JsonResponse({"ok": False, "error": str(e)}, status=400)
+            messages.error(request, self.failure_message or str(e))
+            return redirect(self._success_url(request))
+
+        # Success
+        data = self.transform_response(resp)
+        if self._is_ajax(request):
+            return JsonResponse(
+                {"ok": True, "data": data, "reload": self.ajax_reload}, status=200
+            )
+
+        if self.success_message:
+            messages.success(request, self.success_message)
+        return redirect(self._success_url(request))
+
+    # Disallow other verbs by default
+    def get(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(["POST"])
+    def put(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(["POST"])
+    def patch(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(["POST"])
+    def delete(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(["POST"])

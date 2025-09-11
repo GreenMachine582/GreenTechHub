@@ -68,13 +68,12 @@
         </div>
       {% endif %}
 
-      {% if record_id %}
-        <div class="mb-3">
-          <label for="transaction_date" class="form-label">Date</label>
-          <input type="date" id="transaction_date" name="transaction_date" class="form-control"
-                 value="{{ form.transaction_date.value|default:'' }}" readonly disabled>
-        </div>
-      {% endif %}
+      <div class="mb-3">
+        <label for="transaction_date" class="form-label">Date</label>
+        <input type="date" id="transaction_date" name="transaction_date" class="form-control"
+               value="{{ form.transaction_date.value|default:'' }}"
+               {% if record_id %} readonly disabled {% endif %}>
+      </div>
       <div class="mb-3">
         <label for="type" class="form-label">Type</label>
         <select id="type" name="type" class="form-select" required {% if record_id %} readonly disabled {% endif %}>

@@ -26,7 +26,7 @@ class TransactionForm(forms.Form):
     stock_market = forms.CharField(label="Stock Market", required=False)
     stock_name = forms.CharField(label="Stock Name", required=False)
 
-    transaction_date = forms.DateField(label="Transaction Date", required=False, disabled=True,
+    transaction_date = forms.DateField(label="Transaction Date", required=False,
                                        widget=forms.DateInput(attrs={'type': 'date'}))
     type = forms.ChoiceField(label="Transaction Type", choices=[('buy', 'Buy'), ('sell', 'Sell')])
     units = forms.DecimalField(label="Transaction Units", max_digits=12, decimal_places=2)

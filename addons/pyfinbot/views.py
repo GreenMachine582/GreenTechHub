@@ -18,16 +18,18 @@ class StockListView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["columns"] = [
-            {"title": "Symbol", "field": "symbol", "sorter": "string", "headerFilter": "input"},
-            {"title": "Market", "field": "market", "sorter": "string", "headerFilter": "input"},
+            {"title": "ID", "field": "id", "sorter": "number", "headerFilter": "input", "hozAlign": "center", "width": 100},
+            {"title": "Symbol", "field": "symbol", "sorter": "string", "headerFilter": "input", "width": 150},
+            {"title": "Market", "field": "market", "sorter": "string", "headerFilter": "input", "width": 150},
             {"title": "Name", "field": "name", "sorter": "string", "headerFilter": "input"},
-            {"title": "Active", "field": "is_active", "formatter": "tickCross", "editor": "tickCross",
+            {"title": "Active", "field": "is_active", "formatter": "tickCross", "editor": "tickCross", "width": 100,
              "hozAlign": "center", "headerFilter": "tickCross"},
             {
                 "title":     "Actions",
                 "field":     "actions",
                 "hozAlign":  "center",
                 "headerSort": False,
+                "width": 150,
             },
         ]
         ctx["template_columns"] = [

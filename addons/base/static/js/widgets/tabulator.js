@@ -226,23 +226,48 @@ function applyTemplateFormatterById(table, columnName, tplId, root) {
   applyTemplateFormatter(table, columnName, tpl.innerHTML);
 }
 
-function bindQBSearch(table, cfg, el, root) {
+function bindExternalReload(table, cfg, el, root) {
   const scopeEl = cfg.qbScope ? document.querySelector(cfg.qbScope) : root;
   const refresh = debounce(() => table.setData(), 150);
 
-  const handler = (e) => {
-    const { qb, json } = e.detail || {};
-    if (scopeEl !== document) {
-      const container = qb?.root || qb; // support either element or instance.root
-      if (!container || !scopeEl.contains(container)) return;
-    }
-    cfg._filters = json || '';
-    refresh();                     // trigger request
+  const detach = [];
+  const on = (type, fn) => {
+    scopeEl.addEventListener(type, fn);
+    detach.push(() => scopeEl.removeEventListener(type, fn));
   };
 
-  scopeEl.addEventListener('qb:search', handler);
-  el._qbSearchDetach = () => scopeEl.removeEventListener('qb:search', handler);
+  // 1) qb:search (only if QB is enabled)
+  if (cfg.includeQB) {
+    const qbHandler = (e) => {
+      const { qb, json } = e.detail || {};
+      if (scopeEl !== document) {
+        const container = qb?.root || qb; // support element or instance.root
+        if (!container || !scopeEl.contains(container)) return;
+      }
+      cfg._filters = json || "";
+      refresh();
+    };
+    on("qb:search", qbHandler);
+  }
+
+  // 2) table:reload (always supported)
+  const reloadHandler = (e) => {
+    const nextJson = e?.detail?.json; // optional override (same shape as qb:search)
+    if (nextJson !== undefined) {
+      cfg._filters = nextJson || "";
+    }
+    refresh();
+  };
+  on("table:reload", reloadHandler);
+
+  // unified detach
+  el._extReloadDetach = () => {
+    for (const off of detach) {
+      try { off(); } catch {}
+    }
+  };
 }
+
 
 // Build a stable key for dedup/throttle
 function buildRequestKey(finalUrl, params) {
@@ -354,15 +379,13 @@ const applyTabulatorWidget = (el, csrftoken) => {
     el._tableBuilt = true;
   });
 
-  if (cfg.includeQB) {
-    bindQBSearch(table, cfg, el, root);
-  }
+  bindExternalReload(table, cfg, el, root);
 
   // expose and return
   el._tabulator = table;
   el._root = root;
   el._tabulatorDestroy = () => {
-    try { el._qbSearchDetach?.(); } catch {}
+    try { el._extReloadDetach?.(); } catch {}
     try { table.destroy(); } catch {}
     el._tabulator = null;
     el._tableBuilt = false;

@@ -23,6 +23,8 @@
 {% block main %}
   <section class="section stock">
     <a href="{% url 'pyfinbot-stock-form' %}" class="btn btn-primary mb-3">Add Stock</a>
+    <a data-action-url="{% url 'pyfinbot-market-sync-action' market='asx' %}" class="btn btn-primary mb-3"
+       id="btn-sync-asx"><i class="fas fa-sync me-1"></i> Sync ASX Stocks</a>
     {% render_tabulator %}
     <script type="text/template" id="stock-action-template">
       <a href="/pyfinbot/stock/form/${id}"
@@ -36,4 +38,63 @@
       </button>
     </script>
   </section>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("btn-sync-asx");
+      if (!btn) return;
+
+      btn.addEventListener("click", async () => {
+        if (btn.disabled) return;
+        const url   = btn.dataset.actionUrl;
+        const scope = btn.dataset.qbScope ? document.querySelector(btn.dataset.qbScope) : document;
+
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Syncing...';
+
+        try {
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Content-Type": "application/json",
+            },
+            body: null
+          });
+
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok || data.ok !== true) throw new Error(data.error || "Sync failed");
+
+          // Emit event that Tabulator listens to
+          scope.dispatchEvent(new CustomEvent("table:reload", {
+            detail: {},
+            bubbles: false
+          }));
+
+        } catch (err) {
+          console.error(err);
+          alert("Failed to sync stocks. Please try again.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    });
+  </script>
 {% endblock %}

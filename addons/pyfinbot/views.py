@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 
 from .forms import StockForm, TransactionForm
 from ..authentication.mixins import LoginRequiredMixin
-from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceDeleteView
+from ..microservice.views import BaseMicroserviceFormView, BaseMicroserviceDeleteView, BaseMicroserviceActionView
 
 _logger = logging.getLogger(__name__)
 
@@ -53,6 +53,13 @@ class StockDeleteView(BaseMicroserviceDeleteView):
     confirm_title = "Delete Stock"
     confirm_message = "This will permanently remove this stock."
     confirm_label = "Delete permanently"
+
+
+class SyncMarketStocksView(BaseMicroserviceActionView):
+    service_prefix = "pyfinbot"
+    action_path = "/stocks/sync/{market}"
+    method = "POST"
+    success_message = "Stock sync completed."
 
 
 class TransactionListView(LoginRequiredMixin, TemplateView):

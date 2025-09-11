@@ -11,6 +11,8 @@ urlpatterns = [
          name='pyfinbot-stock-form'),
     path('pyfinbot/stock/delete/<int:record_id>/', views.StockDeleteView.as_view(),
          name='pyfinbot-stock-delete'),
+    path('pyfinbot/stocks/sync/<str:market>/', views.SyncMarketStocksView.as_view(),
+         name='pyfinbot-market-sync-action'),
 
     path('pyfinbot/transaction/list/', views.TransactionListView.as_view(), name='pyfinbot-transaction-list'),
     path('pyfinbot/transaction/form/', views.TransactionFormView.as_view(), name='pyfinbot-transaction-form'),

@@ -2,23 +2,37 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.utils.html import escape
+from django.views.generic import FormView
+
+from .forms import UserRegistrationForm
 
 # Create your views here.
 
-def user_register(request):
-    if request.method == 'POST':
-        kwargs = dict(request.POST.items())
-        kwargs.pop('csrfmiddlewaretoken', None)
-        try:
-            new_user = User.objects.create_user(**kwargs)
-            login(request, new_user)  # Sign user in after registration
-            messages.success(request, "Your account has been created successfully!")
-            return redirect("home")
-        except Exception as e:
-            messages.error(request, "There was an error in your form. Please correct it and try again.")
-    return render(request, 'users-register.html')
+class UserRegistrationFormView(FormView):
+    form_class = UserRegistrationForm
+    template_name = "users-register.html"
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        new_user = form.save()
+        login(self.request, new_user)  # Sign user in after registration
+        messages.success(self.request, "Your account has been created successfully!")
+        return super().form_valid(new_user)
+
+    def form_invalid(self, form):
+        error_message = "<p>Failed to register. Please correct the errors below: </p><ul>"
+        for field, errors in form.errors.items():
+            for error in errors:
+                # Label the error with the field name if available
+                field_name = form.fields[field].label if field in form.fields else "Error"
+                error_message += f"<li><strong>{escape(field_name)}:</strong> {escape(error)}</li>"
+        error_message += "</ul>"
+        form.errors.clear()
+        messages.error(self.request, error_message)
+        return super().form_invalid(form)
 
 
 def user_login(request):

@@ -12,7 +12,7 @@
 
           <div class="d-flex justify-content-center py-4">
             <a href="index.html" class="logo d-flex align-items-center w-auto">
-              <img src="assets/img/logo.png" alt="">
+              <img src="/static/img/logo.png" alt="">
               <span class="d-none d-lg-block">GreenTechHub</span>
             </a>
           </div><!-- End Logo -->
@@ -29,34 +29,32 @@
               <form class="row g-3 needs-validation" method="post" novalidate>
                 {% csrf_token %}
                 <div class="col-12">
-                  <label for="firstName" class="form-label">Name</label>
-
+                  <label class="form-label">Name:</label>
                   <div class="row align-items-start">
                     <div class="col">
-                      <input type="text" name="first_name" class="form-control" id="firstName" placeholder="John">
+                     {{ form.first_name }}
                     </div>
                     <div class="col">
-                      <input type="text" aria-label="" name="last_name" class="form-control" id="lastName" placeholder="Doe">
+                     {{ form.last_name }}
                     </div>
                   </div>
                 </div>
 
                 <div class="col-12">
-                  <label for="email" class="form-label">Email</label>
-                  <input type="email" name="email" class="form-control" id="email" placeholder="John.Doe@gamil.com"/>
+                  {{ form.email.label_tag }}
+                  {{ form.email }}
                 </div>
 
                 <div class="col-12">
-                  <label for="yourUsername" class="form-label">Username</label>
+                  {{ form.username.label_tag }}
                   <div class="input-group has-validation">
-                    <span class="input-group-text" id="inputGroupPrepend">@</span>
-                    <input type="text" name="username" class="form-control" id="yourUsername" placeholder="JohnDoe123"/>
+                    {{ form.username }}
                   </div>
                 </div>
 
                 <div class="col-12">
-                  <label for="yourPassword" class="form-label">Password</label>
-                  <input type="password" name="password" class="form-control" id="yourPassword" placeholder="Jo4nDo3"/>
+                  {{ form.password.label_tag }}
+                  {{ form.password }}
                 </div>
 
                 <div class="col-12">

@@ -1,0 +1,21 @@
+{% extends "modal_forms/base_modal.html" %}
+
+{% with header_class=header_class|default:"bg-warning text-dark" %}
+  {% block modal_title %}
+    {{ title|default:"Confirm Action" }}
+  {% endblock %}
+
+  {% block modal_body %}
+    <p>{{ message|default:"Are you sure you want to continue?" }}</p>
+  {% endblock %}
+
+  {% block modal_footer %}
+    {{ block.super }}
+    <form method="post" action="{{ action_url }}">
+      {% csrf_token %}
+      <button type="submit" class="btn {{ confirm_class|default:'btn-primary' }}">
+        {{ confirm_label|default:"Confirm" }}
+      </button>
+    </form>
+  {% endblock %}
+{% endwith %}

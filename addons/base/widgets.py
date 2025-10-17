@@ -1,21 +1,50 @@
-from django.forms import widgets
+from django.forms import widgets, CheckboxInput
 
 
-class BootstrapInputMixin:
-    """A mixin to extend input widgets with Bootstrap 5 support."""
-    input_class = "form-control"  # Default Bootstrap input class
+class BootstrapWidgetMixin:
+    """
+    Generic mixin to inject a default Bootstrap class into any widget.
+    Child classes should set `default_class`.
+    """
+    default_class = ""
 
-    def __init__(self, attrs=None, placeholder=None, prepend=None, append=None):
+    def __init__(self, attrs=None, **kwargs):
         attrs = attrs or {}
-        attrs.setdefault("class", self.input_class)
+        # merge any existing classes with our default
+        existing = attrs.get("class", "")
+        classes = f"{existing} {self.default_class}".strip()
+        attrs["class"] = classes
+        super().__init__(attrs, **kwargs)
 
+
+class BootstrapCheckboxMixin(BootstrapWidgetMixin):
+    default_class = "form-check-input"
+    template_name = "widgets/bootstrap_checkbox.html"
+
+    def __init__(self, attrs=None, switch=False, **kwargs):
+        """
+        :param switch: if True, adds the .form-switch wrapper class
+        """
+        super().__init__(attrs=attrs, **kwargs)
+        self.switch = switch
+
+    def get_context(self, name, value, attrs):
+        ctx = super().get_context(name, value, attrs)
+        ctx["widget"]["switch"] = self.switch
+        return ctx
+
+
+
+class BootstrapInputMixin(BootstrapWidgetMixin):
+    """A mixin to extend input widgets with Bootstrap 5 support."""
+    default_class = "form-control"
+
+    def __init__(self, attrs=None, placeholder=None, prepend=None, append=None, **kwargs):
+        super().__init__(attrs=attrs, **kwargs)
         if placeholder:
-            attrs["placeholder"] = placeholder
-
-        self.prepend = prepend  # Icon or text before input
-        self.append = append    # Icon or text after input
-
-        super().__init__(attrs)
+            self.attrs["placeholder"] = placeholder
+        self.prepend = prepend
+        self.append = append
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -52,11 +81,18 @@ class PasswordInput(BootstrapInputMixin, widgets.PasswordInput):
     """
     template_name = "widgets/bootstrap_password.html"
 
-    def __init__(self, attrs=None, render_value=False, placeholder="Enter password"):
+    def __init__(self, attrs=None, render_value=False, placeholder="Enter password", **kwargs):
         """
         :param attrs: HTML attributes
         :param render_value: Whether to render the password value
         :param placeholder: Placeholder text
         """
-        super().__init__(attrs=attrs, placeholder=placeholder)
+        super().__init__(attrs=attrs, placeholder=placeholder, **kwargs)
         self.render_value = render_value
+
+
+class SwitchInput(CheckboxInput):
+    """A Bootstrap switch (toggle)."""
+    def __init__(self, attrs: dict = None, **kwargs):
+        attrs = {**(attrs or {}), "checkbox_style": "switch"}
+        super().__init__(attrs=attrs, **kwargs)

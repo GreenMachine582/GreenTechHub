@@ -15,6 +15,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .logging_config import LOGGING
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,7 +41,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bootstrap5',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.github',
+    'rest_framework',
+    'django_bootstrap5',
+    'bootstrap_modal_forms',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +74,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.static',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -123,12 +134,79 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+################
+# AllAuth      #
+################
+
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+MIDDLEWARE += [
+    'allauth.account.middleware.AccountMiddleware',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GOGGLE"),
+            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GOGGLE"),
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'METHOD': 'oauth2',
+        'VALIDATE_EMAIL': True,
+    },
+    'github': {
+        'APP': {
+            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GITHUB"),
+            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GITHUB"),
+        },
+    }
+}
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
+LOGIN_REDIRECT_URL = '/'
+AUTH_USER_MODEL = 'authentication.User'
+
+
+################
+# Bootstrap    #
+################
+
+BOOTSTRAP5 = {
+    "set_placeholder": False,
+    "include_jquery": True,
+    "jquery_url": "https://code.jquery.com/jquery-3.6.4.min.js",
+    "form_class": "row g-3",
+    "field_renderers": {
+        "default": "addons.base.renderers.FieldRenderer",
+    },
+}
+
+
+################
+# REST       #
+################
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
 
 
 ################
@@ -155,6 +233,11 @@ STATICFILES_DIRS = [
     for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "static").exists()
 ]
 
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
 # Compiled static files destination
 if DEBUG:
     STATIC_ROOT = ''
@@ -166,5 +249,8 @@ else:  # Production collected static files
 
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 
+X_FRAME_OPTIONS = "SAMEORIGIN"
 APPEND_SLASH = True
+LOGIN_URL = '/login/'

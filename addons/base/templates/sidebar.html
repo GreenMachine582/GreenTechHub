@@ -2,13 +2,28 @@
   <ul class="sidebar-nav" id="sidebar-nav">
 
     <li class="nav-item">
-      <a class="nav-link {% if site_path == '/home/' %}active{% else %}collapsed{% endif %}" href="/home/">
+      <a class="nav-link {% if site_path == '/home/' %}active{% else %}collapsed{% endif %}" href="{% url 'home' %}">
         <i class="fas fa-house"></i>
         <span>Home</span>
       </a>
     </li><!-- End Home Nav -->
 
-    <li class="nav-heading">Admin</li>
+<!--    #TODO: restrict access to this page unless the user has group pyfinbot_user; maybe add all group code names into context?-->
+    {% if user.is_authenticated %}
+      <li class="nav-heading">PyFinBot</li>
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/pyfinbot/stock/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-stock-list' %}">
+          <i class="fas fa-business-time"></i>
+          <span>Stocks</span>
+        </a>
+      </li><!-- End Stock Page Nav -->
+      <li class="nav-item">
+        <a class="nav-link {% if site_path == '/pyfinbot/transaction/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-transaction-list' %}">
+          <i class="fas fa-right-left"></i>
+          <span>Transactions</span>
+        </a>
+      </li><!-- End Transaction Page Nav -->
+    {% endif %}
 
     {% if user.is_authenticated == True %}
       <li class="nav-item">
@@ -20,15 +35,16 @@
     {% endif %}
 
     {% if user.is_authenticated == False %}
+      <li class="nav-heading">Admin</li>
       <li class="nav-item">
-        <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="/register/">
+        <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="{% url 'register' %}">
           <i class="fas fa-user-plus"></i>
           <span>Register</span>
         </a>
       </li><!-- End Register Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link {% if site_path == '/login/' %}active{% else %}collapsed{% endif %}" href="/login/">
+        <a class="nav-link {% if site_path == '/login/' %}active{% else %}collapsed{% endif %}" href="{% url 'login' %}">
           <i class="fas fa-user"></i>
           <span>Login</span>
         </a>
@@ -44,7 +60,7 @@
         <hr class="sidebar-divider">
       </li>
       <li class="nav-item">
-        <a class="nav-link {% if site_path == '/logout/' %}active{% else %}collapsed{% endif %}" href="/logout/">
+        <a class="nav-link {% if site_path == '/logout/' %}active{% else %}collapsed{% endif %}" href="{% url 'logout' %}">
           <i class="fas fa-right-from-bracket"></i>
           <span>Sign Out</span>
         </a>

@@ -1,9 +1,11 @@
 import {select, on, onscroll} from "./helpers.js";
 import {Bootstrap} from "./bootstrap.js";
 import {Sidebar} from "./sidebar.js";
+import {Tabulator} from "./widgets/tabulator.js";
 
 Sidebar.init();
 Bootstrap.init();
+Tabulator.init();
 
 (function() {
   "use strict";
@@ -237,30 +239,6 @@ Bootstrap.init();
         form.classList.add('was-validated')
       }, false)
     })
-
-  /**
-   * Initiate Datatables
-   */
-  const datatables = select('.datatable', true)
-  datatables.forEach(datatable => {
-    new simpleDatatables.DataTable(datatable, {
-      perPageSelect: [5, 10, 15, ["All", -1]],
-      columns: [{
-          select: 2,
-          sortSequence: ["desc", "asc"]
-        },
-        {
-          select: 3,
-          sortSequence: ["desc"]
-        },
-        {
-          select: 4,
-          cellClass: "green",
-          headerClass: "red"
-        }
-      ]
-    });
-  })
 
   /**
    * Autoresize echart charts

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block meta %}
+  {% with page_title=record_id|yesno:"Edit Stock – PyFinBot,Add Stock – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Stock</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'pyfinbot-stock-list' %}">Stocks</a></li>
+        <li class="breadcrumb-item active">{% if record_id %}Edit{% else %}Add{% endif %} Stock</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section stock">
+    <form method="post" action="">
+      {% csrf_token %}
+
+      {% if record_id %}
+        {% bootstrap_button "Save" button_type="submit" %}
+        <a class="btn btn-danger js-modal"
+           data-form-url="{% url 'pyfinbot-stock-delete' record_id=record_id %}">
+          Delete
+        </a>
+      {% else %}
+        {% bootstrap_button "Create" button_type="submit" button_class="btn-success" %}
+      {% endif %}
+
+      {% bootstrap_button "Cancel" button_type="link" href=cancel_url button_class="btn-secondary" %}
+
+      <div class="divider"></div>
+
+      {% bootstrap_form form %}
+    </form>
+  </section>
+{% endblock %}

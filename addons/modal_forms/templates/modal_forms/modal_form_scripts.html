@@ -1,0 +1,37 @@
+<script>
+  document.addEventListener('click', function (e) {
+    const t = e.target.closest('.js-modal');
+    if (!t) return;
+
+    const url = t.getAttribute('data-form-url') || t.getAttribute('data-url') || t.getAttribute('href');
+    if (!url || url === '#') return;
+    e.preventDefault();
+
+    const modalEl = document.getElementById('globalModal');
+    if (!modalEl) { console.error('globalModal root not found'); return; }
+
+    // Prefer django-bootstrap-modal-forms if available
+    if (window.jQuery && typeof $.fn.modalForm === 'function') {
+      $(t).modalForm({ formURL: url, modalID: '#globalModal' });
+      return;
+    }
+
+    // Fallback: fetch partial into modal then show
+    const modalContent = modalEl.querySelector('.modal-content');
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.text())
+      .then(html => {
+        modalContent.innerHTML = html;
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      })
+      .catch(err => console.error('Failed to load modal content:', err));
+  });
+
+  // (Temporary) sanity check to catch missing modal in the DOM
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('globalModal')) {
+      console.error('globalModal NOT in DOM at DOMContentLoaded');
+    }
+  });
+</script>

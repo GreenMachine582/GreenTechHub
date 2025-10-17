@@ -67,26 +67,31 @@ h6 {
 --------------------------------------------------------------*/
 .back-to-top {
   position: fixed;
-  visibility: hidden;
-  opacity: 0;
-  right: 15px;
-  bottom: 15px;
-  z-index: 99999;
-  background: #4154f1;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 4px;
-  transition: all 0.4s;
+  background-color: var(--bs-primary);
+  color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 .25rem .5rem rgba(0,0,0,.15);
+  opacity: 0;
+  visibility: hidden;
+  transition: all .4s;
+  text-decoration: none;
 }
 
 .back-to-top i {
-  font-size: 24px;
-  color: #fff;
-  line-height: 0;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .back-to-top:hover {
-  background: #6776f4;
+  background-color: #0a55c0;
   color: #fff;
 }
 
@@ -210,6 +215,52 @@ h6 {
   background-color: #d3d3d4;
   border-color: #d3d3d4;
 }
+
+.divider {
+  position: relative;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.divider, .text-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.text-divider {
+  color: var(--bs-secondary);
+  font-weight: 500;
+  font-size: 0.875rem; /* ~14px */
+}
+
+.text-divider::before,
+.text-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--bs-border-color);
+}
+
+.divider::before, .text-divider::before {
+  margin-right: 1rem;
+}
+
+.divider::after, .text-divider::after {
+  margin-left: 1rem;
+}
+
+/* Provider specific */
+.btn-social.google {
+  background-color: #db4437;
+  color: white;
+}
+
+.btn-social.github {
+  background-color: #333;
+  color: white;
+}
+
 
 /* Card */
 .card {
@@ -1021,6 +1072,12 @@ h6 {
 
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  iframe {
+    height: 70vh !important;
   }
 }
 

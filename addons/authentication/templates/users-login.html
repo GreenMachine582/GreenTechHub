@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load socialaccount %}
 
-{% block title %}
-  Login - GreenTechHub
+{% block meta %}
+  {% with page_title="Login - "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
 {% endblock %}
 
 {% block main %}
@@ -52,10 +55,25 @@
                   <button class="btn btn-primary w-100" type="submit">Login</button>
                 </div>
                 <div class="col-12">
-                  <p class="small mb-0">Don't have account? <a href="/register/">Create an account</a></p>
+                  <p class="small mb-0">Don't have account? <a href="{% url 'register' %}">Create an account</a></p>
                 </div>
               </form>
 
+              <div class="text-divider">or</div>
+              <div class="mt-4">
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'google' %}" class="btn btn-social w-100 google" title="Login with Google">
+                    <i class="fab fa-google"></i>
+                    <span class="btn-text">Google</span>
+                  </a>
+                </div>
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'github' %}" class="btn btn-social w-100 github" title="Login with Github">
+                    <i class="fab fa-github"></i>
+                    <span class="btn-text">Github</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

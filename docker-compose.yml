@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    container_name: greentechhub_db
+    ports:
+      - "5431:5432"  # host:container
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - greentechhub_net
+
+  greentechhub:
+    build: .
+    container_name: greentechhub
+    command: python server.py runserver 000.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - greentechhub_net
+
+networks:
+  greentechhub_net:
+    name: greentechhub_network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: greentechhub_postgres_data

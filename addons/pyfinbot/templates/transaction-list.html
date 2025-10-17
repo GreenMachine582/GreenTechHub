@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load tabulator_tags %}
+
+{% block meta %}
+  {% with page_title="Transactions – PyFinBot" %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>Transactions</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-house"></i></a></li>
+        <li class="breadcrumb-item">PyFinBot</li>
+        <li class="breadcrumb-item active">Transactions</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section transaction">
+    <a href="{% url 'pyfinbot-transaction-form' %}" class="btn btn-primary mb-3">Add Transaction</a>
+    {% render_tabulator %}
+
+    <script type="text/template" id="transaction-action-template">
+      <a href="/pyfinbot/transaction/form/${id}"
+         class="btn btn-sm btn-warning me-1">
+        <i class="fa-solid fa-pencil"></i>
+      </a>
+      <button type="button"
+              class="btn btn-sm btn-danger js-modal"
+              data-form-url="/pyfinbot/transaction/delete/${id}/">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </script>
+  </section>
+{% endblock %}

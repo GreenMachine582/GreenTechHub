@@ -6,8 +6,12 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.html import escape
 from django.views.generic import FormView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .forms import UserRegistrationForm
+from .models import GroupProfile
 
 # Create your views here.
 
@@ -60,3 +64,39 @@ def user_logout(request):
     logout(request)
     messages.success(request, "You have been logged out.")
     return redirect("login")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_info(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def access_check(request):
+    user = request.user
+
+    required_group = request.data.get('group', '')
+    required_groups = set(request.data.get('groups', '').split(',')) - {''}
+
+    if not required_groups:
+        if not required_group:
+            return Response({'allowed': False})
+        required_groups = {required_group}
+
+    user_group_ids = set(user.groups.values_list('id', flat=True))
+
+    for group_code in required_groups:
+        group = GroupProfile.get_group_by_code_name(group_code)
+        if group and group.id in user_group_ids:
+            return Response({'allowed': True})
+
+    return Response({'allowed': False})

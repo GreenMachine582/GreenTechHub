@@ -1,0 +1,22 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/querybuilder.css' %}">
+
+<div class="qb-root"
+     data-qb
+     data-config-id="{{ config_id }}"
+     data-hidden="{{ target }}"
+     data-compact="{{ compact|yesno:'true,false' }}"
+     data-collapsed="{{ collapsed|yesno:'true,false' }}"
+     {% if initial %}data-initial='{{ initial|safe }}'{% endif %}></div>
+
+{# Auto-render the hidden input when target wasn't supplied #}
+{% if auto_input %}
+  <input type="hidden" id="{{ input_id }}" name="{{ name }}">
+{% endif %}
+
+<script>
+  window.__QB_CONFIGS__ = window.__QB_CONFIGS__ || {};
+  window.__QB_CONFIGS__["{{ config_id|escapejs }}"] = {{ fields_json|safe }};
+</script>
+
+<script type="module" src="{% static 'js/widgets/querybuilder.js' %}"></script>

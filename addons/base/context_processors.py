@@ -1,7 +1,8 @@
 
 def default_context(request):
     return {
-        'app_name': 'GreenTechHub',
-        'site_version': '1.0.0',
+        'site_name': "GreenTechHub",
+        'meta_description': "Serves to showcase innovative projects, exploring a curated library of games, and accessing embedded services that enhance user experiences.",
+        'meta_keywords': "GreenTechHub, showcase, games library, django, microservices",
         'site_path': request.path
     }

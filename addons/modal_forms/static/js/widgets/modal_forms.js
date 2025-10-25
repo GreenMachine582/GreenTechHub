@@ -59,7 +59,7 @@ import { select, on, getCookie } from "../helpers.js";
   on("shown.bs.modal", document, (e) => {
     const modal = select(e.target);
     const input = select('input[data-required-text]', false, modal);
-    const btn   = select('button[id$="ConfirmBtn"]', false, modal);
+    const btn   = select('button[id$="SubmitBtn"]', false, modal);
     if (!input || !btn) return;
 
     const required = input.dataset.requiredText || "";

@@ -164,8 +164,8 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
 
     Optional modal customisations:
       - confirm_template_name (body-only)
-      - confirm_title, confirm_message, confirm_label
-      - confirm_class, header_class, icon
+      - confirm_title, confirm_message, submit_label
+      - submit_class, header_class, icon
     """
     delete_path: str
     success_url: str
@@ -174,8 +174,8 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
     confirm_template_name = "modal_forms/confirm_modal.html"
     confirm_title = "Confirm Delete"
     confirm_message = "Are you sure you want to delete this record? This action cannot be undone."
-    confirm_label = "Yes, delete"
-    confirm_class = "btn-danger"
+    submit_label = "Yes, delete"
+    submit_class = "btn-danger"
     header_class = "bg-warning text-white"
     icon = "fas fa-triangle-exclamation"
 
@@ -192,8 +192,8 @@ class BaseMicroserviceDeleteView(LoginRequiredMixin, MicroserviceMixin, View):
             "action_url": request.path,
             "title": self.confirm_title,
             "message": self.confirm_message,
-            "confirm_label": self.confirm_label,
-            "confirm_class": self.confirm_class,
+            "submit_label": self.submit_label,
+            "submit_class": self.submit_class,
             "header_class": self.header_class,
             "icon": self.icon,
         }

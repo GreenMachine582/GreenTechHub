@@ -119,10 +119,10 @@ class DeleteAccountView(LoginRequiredMixin, View):
     confirm_template_name = "modal_forms/confirm_modal.html"
     confirm_title = "Delete Account"
     confirm_message = (
-        "This will permanently delete your account, profile, and avatar. You will be logged out immediately."
+        "This will permanently delete your account, this action cannot be undone. You will be logged out immediately."
     )
-    confirm_label = "Delete my account"
-    confirm_class = "btn-danger"
+    submit_label = "Delete my account"
+    submit_class = "btn-danger"
     header_class = "bg-danger text-white"
     icon = "fas fa-triangle-exclamation"
 
@@ -147,8 +147,8 @@ class DeleteAccountView(LoginRequiredMixin, View):
             "modal_id": "deleteAccountModal",
             "title": self.confirm_title,
             "message": self.confirm_message,
-            "confirm_label": self.confirm_label,
-            "confirm_class": self.confirm_class,
+            "submit_label": self.submit_label,
+            "submit_class": self.submit_class,
             "header_class": self.header_class,
             "icon": self.icon,
             "require_text": self.required_text,

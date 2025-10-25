@@ -54,7 +54,7 @@ class StockDeleteView(BaseMicroserviceDeleteView):
 
     confirm_title = "Delete Stock"
     confirm_message = "This will permanently remove this stock."
-    confirm_label = "Delete permanently"
+    submit_label = "Delete permanently"
 
 
 class SyncMarketStocksView(BaseMicroserviceActionView):

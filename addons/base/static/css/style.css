@@ -159,7 +159,7 @@ h6 {
     background: #fff;
     position: absolute;
     top: -7px;
-    right: 20px;
+    right: 12px;
     transform: rotate(45deg);
     border-top: 1px solid #eaedf1;
     border-left: 1px solid #eaedf1;
@@ -1142,4 +1142,32 @@ h6 {
   text-align: center;
   font-size: 13px;
   color: #012970;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.avatar.object-fit-cover {
+  object-fit: cover;
+}
+
+/* Fallback icon (inside .avatar div) */
+.avatar-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Optional hover highlight */
+.nav-profile:hover .avatar {
+  border-color: var(--bs-primary, #0d6efd);
+}
+
+/* Adjust spacing for the header */
+.nav-profile .avatar,
+.nav-profile .avatar-icon {
+  vertical-align: middle;
 }

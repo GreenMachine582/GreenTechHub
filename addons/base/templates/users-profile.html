@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% load modal_form_tags %}
 
 {% block title %}
   Profile - GreenTechHub
@@ -18,8 +20,163 @@
 {% endblock %}
 
 {% block main %}
-  <section class="section profile">
-    <div class="row">
+<section class="section profile">
+  <div class="row g-4">
+
+    {# Left: Summary card #}
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body text-center p-4">
+          {% with avatar_url=request.user.profile.effective_avatar_url  %}
+            {% if avatar_url %}
+              <img src="{{ avatar_url }}" class="rounded-circle mb-3" alt="avatar" width="128" height="128">
+            {% else %}
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light mb-3" style="width:128px;height:128px;">
+                <i class="fas fa-user fa-3x text-secondary"></i>
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <h5 class="card-title mb-1">{{ request.user.get_full_name }}</h5>
+          <p class="text-muted mb-3">@{{ request.user.username }}</p>
+
+          <div class="text-start small">
+            <div class="mb-1"><i class="fas fa-envelope me-2"></i>{{ request.user.email|default:"—" }}</div>
+            <div class="mb-1"><i class="fas fa-id-badge me-2"></i>User ID: {{ request.user.id }}</div>
+            {% if request.user.role %}
+              <div class="mb-1"><i class="fas fa-user-shield me-2"></i>Role: {{ request.user.role.name }}</div>
+            {% endif %}
+            {% if request.user.avatar_source %}
+              <div class="mb-1"><i class="fas fa-image me-2"></i>Avatar source: {{ request.user.avatar_source|title }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# Connected social accounts #}
+      <div class="card">
+        <div class="card-header">
+          <strong>Connected Accounts</strong>
+        </div>
+        <div class="card-body">
+          {% with accounts=request.user.socialaccount_set.all %}
+            {% if accounts %}
+              <ul class="list-group list-group-flush">
+                {% for acc in accounts %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>
+                      <i class="fab fa-{% if acc.provider == 'google' %}google{% elif acc.provider == 'github' %}github{% else %}key{% endif %} me-2"></i>
+                      {{ acc.get_provider_display }} <small class="text-muted">({{ acc.uid }})</small>
+                    </span>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'socialaccount_connections' %}">
+                      Manage
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-2">No providers linked.</p>
+              <a class="btn btn-sm btn-primary" href="{% url 'socialaccount_login' %}">
+                Link an account
+              </a>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
     </div>
-  </section>
+
+    {# Right: Edit form #}
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <strong>Edit Profile</strong>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-6">
+              <label class="form-label">Avatar</label>
+              {{ form.avatar }}
+              <div class="form-text">PNG/JPG up to ~2MB.</div>
+              {% if form.avatar.errors %}
+                <div class="invalid-feedback d-block">{{ form.avatar.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-save me-1"></i> Save changes
+              </button>
+
+              {% if request.user.profile.avatar %}
+              <button class="btn btn-outline-danger" name="clear_avatar" value="1" type="submit">
+                <i class="bi bi-trash me-1"></i> Remove uploaded avatar
+              </button>
+              {% endif %}
+
+              {% if request.user.profile.avatar_url %}
+              <button class="btn btn-outline-secondary" name="refresh_from_provider" value="1" type="submit">
+                <i class="bi bi-arrow-clockwise me-1"></i> Refresh provider avatar
+              </button>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {# Provider image notice #}
+      <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle me-2"></i>
+        If you remove your uploaded avatar and have a linked provider (Google/GitHub), we’ll fall back to the provider’s profile photo.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{# Live preview of selected file #}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const fileInput = document.querySelector('input[type="file"][name="avatar"]');
+    if (!fileInput) return;
+    fileInput.addEventListener("change", (e) => {
+      const [file] = e.target.files || [];
+      const preview = document.getElementById("avatarPreview");
+      const empty = document.getElementById("avatarEmpty");
+      if (file) {
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+        preview.classList.remove("d-none");
+        if (empty) empty.classList.add("d-none");
+      }
+    });
+  });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const host = document.getElementById("modalHost");
+  if (!host) return;
+
+  document.body.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-modal");
+    if (!btn) return;
+
+    const url = btn.getAttribute("data-modal-url");
+    if (!url) return;
+
+    const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!res.ok) return;
+
+    host.innerHTML = await res.text();
+
+    // find modal element (the included template must have .modal root)
+    const modalEl = host.querySelector(".modal");
+    if (!modalEl) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+  });
+});
+</script>
+
 {% endblock %}

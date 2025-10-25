@@ -53,18 +53,36 @@
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="{% static 'img/green-machine-user.jpg' %}" alt="Profile" class="rounded-circle" loading="lazy">
+            {% with avatar_url=request.user.profile.effective_avatar_url %}
+              {% if avatar_url %}
+                <img src="{{ avatar_url }}" alt="avatar" loading="lazy"
+                     class="avatar rounded-circle object-fit-cover">
+              {% else %}
+                <div class="avatar rounded-circle bg-light d-flex align-items-center justify-content-center">
+                  <i class="fas fa-user text-secondary avatar-icon"></i>
+                </div>
+              {% endif %}
+            {% endwith %}
           </a>
+
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+            <li class="dropdown-header">
+              <h6>{% if not user.is_authenticated %}Welcome, Guest!{% else %}{{ user.get_full_name }}{% endif %}</h6>
+            </li>
             <li>
-              <a class="dropdown-item d-flex align-items-center" href="/users/profile/">
-                <i class="fa fas-person"></i>
+              <hr class="dropdown-divider">
+            </li>
+            {% if user.is_authenticated %}
+            <li>
+              <a class="dropdown-item d-flex align-items-center" href="{% url 'users-profile' %}">
+                <i class="fas fa-user-pen"></i>
                 <span>My Profile</span>
               </a>
             </li>
             <li>
               <hr class="dropdown-divider">
             </li>
+            {% endif %}
             {% if not user.is_authenticated %}
               <li>
                 <a class="dropdown-item d-flex align-items-center" href="{% url 'login' %}">
@@ -99,7 +117,7 @@
   {# ======= Footer ======= #}
   <footer id="footer" class="footer">
     <div class="copyright">
-      &copy; {{ site_name }}. All Rights Reserved.
+      &copy; 2025-{% now "Y" %} {{ site_name }}. All Rights Reserved.
     </div>
     <div class="credits">
       Designed by <a href="https://github.com/GreenMachine582/GreenTechHub">GreenMachine</a>

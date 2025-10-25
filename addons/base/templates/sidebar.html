@@ -9,20 +9,22 @@
     </li><!-- End Home Nav -->
 
 <!--    #TODO: restrict access to this page unless the user has group pyfinbot_user; maybe add all group code names into context?-->
-    {% if user.is_authenticated %}
-      <li class="nav-heading">PyFinBot</li>
-      <li class="nav-item">
-        <a class="nav-link {% if site_path == '/pyfinbot/stock/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-stock-list' %}">
-          <i class="fas fa-business-time"></i>
-          <span>Stocks</span>
-        </a>
-      </li><!-- End Stock Page Nav -->
-      <li class="nav-item">
-        <a class="nav-link {% if site_path == '/pyfinbot/transaction/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-transaction-list' %}">
-          <i class="fas fa-right-left"></i>
-          <span>Transactions</span>
-        </a>
-      </li><!-- End Transaction Page Nav -->
+    {% if user.is_admin %}
+      {% if user.is_authenticated %}
+        <li class="nav-heading">PyFinBot</li>
+        <li class="nav-item">
+          <a class="nav-link {% if site_path == '/pyfinbot/stock/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-stock-list' %}">
+            <i class="fas fa-business-time"></i>
+            <span>Stocks</span>
+          </a>
+        </li><!-- End Stock Page Nav -->
+        <li class="nav-item">
+          <a class="nav-link {% if site_path == '/pyfinbot/transaction/list/' %}active{% else %}collapsed{% endif %}" href="{% url 'pyfinbot-transaction-list' %}">
+            <i class="fas fa-right-left"></i>
+            <span>Transactions</span>
+          </a>
+        </li><!-- End Transaction Page Nav -->
+      {% endif %}
     {% endif %}
 
     {% if user.is_authenticated == True %}

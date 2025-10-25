@@ -9,4 +9,5 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='home', permanent=False), name='root-redirect'),
     path('home/', views.home, name='home'),
     path('users/profile/', views.user_profile, name='users-profile'),
+    path("me/avatar/", views.serve_my_avatar, name="serve-my-avatar"),
 ]

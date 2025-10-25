@@ -27,7 +27,7 @@ load_dotenv()
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
 
@@ -135,6 +135,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+PRIVATE_MEDIA_ROOT = BASE_DIR / 'private_media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -148,6 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 MIDDLEWARE += [
@@ -157,8 +161,8 @@ MIDDLEWARE += [
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GOGGLE"),
-            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GOGGLE"),
+            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GOOGLE"),
+            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GOOGLE"),
         },
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
@@ -175,6 +179,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_ADAPTER = "addons.authentication.adapters.SocialAdapter"
 # ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
 LOGIN_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'authentication.User'
@@ -213,8 +218,6 @@ REST_FRAMEWORK = {
 # Custom       #
 ################
 
-# MEDIA_URL = 'images/'
-
 # Find all apps in the addons directory
 ADDONS_DIR = BASE_DIR / "addons"
 ADDONS_APPS = [
@@ -233,19 +236,22 @@ STATICFILES_DIRS = [
     for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "static").exists()
 ]
 
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
 
-# Compiled static files destination
-if DEBUG:
-    STATIC_ROOT = ''
-    MEDIA_ROOT = ''
-else:  # Production collected static files
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+
+if not DEBUG:  # Production collected static files
     STATIC_ROOT = BASE_DIR / 'staticfiles'
-    MEDIA_ROOT = BASE_DIR / 'media'
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # User session expiry
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days

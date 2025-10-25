@@ -17,8 +17,10 @@ Including another URLconf
 from os import scandir
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,3 +31,6 @@ urlpatterns += [
     path('', include(f"addons.{app.name}.urls"))
     for app in scandir(settings.ADDONS_DIR) if app.is_dir() and (settings.ADDONS_DIR / app.name / "urls.py").exists()
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

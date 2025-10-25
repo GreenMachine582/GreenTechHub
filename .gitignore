@@ -1,6 +1,8 @@
 # Miscellaneous
 .idea/
 /staticfiles
+/media
+/private_media
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

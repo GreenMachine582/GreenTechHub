@@ -6,16 +6,39 @@
   {% endblock %}
 
   {% block modal_body %}
-    <p>{{ message|default:"Are you sure you want to continue?" }}</p>
+    <form method="post" action="{{ action_url }}" id="{{ modal_id }}Form" novalidate>
+      {% csrf_token %}
+
+      <p class="mb-3">{{ message|default:"Are you sure you want to continue?" }}</p>
+
+      {# Optional: require the user to type a specific phrase, e.g., DELETE #}
+      {% if require_text %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ modal_id }}_confirm_text">
+            {{ require_text_label|default:"Type to confirm" }}
+          </label>
+          <input
+            type="text"
+            id="{{ modal_id }}_confirm_text"
+            name="confirm_text"
+            class="form-control"
+            placeholder="{{ require_text_placeholder|default:require_text }}"
+            data-required-text="{{ require_text }}"
+            required
+          >
+          <div class="form-text">
+            Type <code>{{ require_text }}</code> to confirm.
+          </div>
+        </div>
+      {% endif %}
   {% endblock %}
 
   {% block modal_footer %}
     {{ block.super }}
-    <form method="post" action="{{ action_url }}">
-      {% csrf_token %}
-      <button type="submit" class="btn {{ confirm_class|default:'btn-primary' }}">
-        {{ confirm_label|default:"Confirm" }}
-      </button>
-    </form>
+    <button type="submit" form="{{ modal_id }}Form" class="btn {{ confirm_class|default:'btn-primary' }}"
+            id="{{ modal_id }}ConfirmBtn" {% if require_text %}disabled{% endif %}>
+      {{ confirm_label|default:"Confirm" }}
+    </button>
+    </form> {# close the form started in modal_body #}
   {% endblock %}
 {% endwith %}

@@ -131,6 +131,24 @@
       </div>
     </div>
 
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <strong>Manage Account</strong>
+        </div>
+        <div class="card-body">
+          <p class="mb-3">Permanently delete your account and profile. This action cannot be undone.</p>
+          <button type="button"
+                  class="btn btn-danger js-modal"
+                  data-form-url="{% url 'users-delete-account' %}">
+            <i class="fas fa-trash-can me-1"></i> Delete my account
+          </button>
+
+          {# Empty host for fetched modal HTML #}
+          <div id="modalHost"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 

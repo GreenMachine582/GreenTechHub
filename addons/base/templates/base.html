@@ -142,7 +142,7 @@
   {# ——— Local JS ——— #}
   <script type="module" src="{% static 'js/main.js' %}" defer></script>
   {% block modal_form_scripts %}
-    {% include "modal_forms/modal_form_scripts.html" %}
+    <script type="module" src="{% static 'js/widgets/modal_forms.js' %}" defer></script>
     {% include "partials/csrf_ajax.html" %}
   {% endblock %}
   {% block footer_scripts %}{% endblock %}

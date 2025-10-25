@@ -1,10 +1,14 @@
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseNotAllowed
+from django.shortcuts import render, redirect, resolve_url
 from django.urls import reverse_lazy
 from django.utils.html import escape
+from django.utils.translation import gettext as _
+from django.views import View
 from django.views.generic import FormView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +17,8 @@ from rest_framework.response import Response
 from .forms import UserRegistrationForm
 from .models import GroupProfile
 
-# Create your views here.
+User = get_user_model()
+
 
 class UserRegistrationFormView(FormView):
     form_class = UserRegistrationForm
@@ -100,3 +105,73 @@ def access_check(request):
             return Response({'allowed': True})
 
     return Response({'allowed': False})
+
+
+class DeleteAccountView(LoginRequiredMixin, View):
+    """
+    GET (AJAX): returns the confirmation modal HTML.
+    POST: validates confirm_text/password, logs out, deletes account, redirects.
+
+    Uses: modal_forms/confirm_modal.html
+    """
+
+    # modal config
+    confirm_template_name = "modal_forms/confirm_modal.html"
+    confirm_title = "Delete Account"
+    confirm_message = (
+        "This will permanently delete your account, profile, and avatar. You will be logged out immediately."
+    )
+    confirm_label = "Delete my account"
+    confirm_class = "btn-danger"
+    header_class = "bg-danger text-white"
+    icon = "fas fa-triangle-exclamation"
+
+    required_text = "DELETE"
+
+    success_url = "/"  # or reverse_lazy("home")
+
+    def _is_ajax(self, request) -> bool:
+        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    def _wouldRemoveLastSuperuser(self, u: User) -> bool:
+        return u.is_superuser and User.objects.filter(is_superuser=True).exclude(pk=u.pk).count() == 0
+
+    # ---------- GET: return modal HTML (AJAX only) ----------
+    def get(self, request, *args, **kwargs):
+        if not self._is_ajax(request):
+            # Don’t allow full-page GET; only modal fetches
+            return HttpResponseNotAllowed(["POST"])
+
+        context = {
+            "action_url": request.path,
+            "modal_id": "deleteAccountModal",
+            "title": self.confirm_title,
+            "message": self.confirm_message,
+            "confirm_label": self.confirm_label,
+            "confirm_class": self.confirm_class,
+            "header_class": self.header_class,
+            "icon": self.icon,
+            "require_text": self.required_text,
+        }
+        return render(request, self.confirm_template_name, context)
+
+    # ---------- POST: perform deletion ----------
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        # Require typing DELETE
+        confirm_text = (request.POST.get("confirm_text") or "").strip()
+        if confirm_text != "DELETE":
+            messages.error(request, _(f'Please type "{self.required_text}" to confirm.'))
+            return redirect("users-profile")
+
+        # Prevent removing last superuser
+        if self._wouldRemoveLastSuperuser(user):
+            messages.error(
+                request, _("You are the last superuser. Promote another admin before deleting this account.")
+            )
+            return redirect("users-profile")
+        logout(request)
+
+        user.delete()
+        messages.success(request, _("Your account has been deleted."))
+        return redirect(resolve_url(self.success_url))

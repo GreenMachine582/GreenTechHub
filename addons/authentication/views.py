@@ -1,11 +1,14 @@
 
+from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotAllowed
-from django.shortcuts import render, redirect, resolve_url
-from django.urls import reverse_lazy
+from django.shortcuts import render, redirect, resolve_url, get_object_or_404
+from django.urls import reverse_lazy, reverse
+from django.utils.decorators import method_decorator
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 from django.views import View
@@ -105,6 +108,51 @@ def access_check(request):
             return Response({'allowed': True})
 
     return Response({'allowed': False})
+
+
+@method_decorator(login_required, name="dispatch")
+class RemoveConnectionConfirmView(View):
+    template_name = "modal_forms/confirm_modal.html"
+
+    def get(self, request, pk):
+        # AJAX-only modal body
+        acc = get_object_or_404(SocialAccount, pk=pk, user=request.user)
+        ctx = {
+            "modal_id": "removeConnectionModal",
+            "action_url": reverse("users-remove-connection", args=[acc.pk]),
+            "title": "Remove Connected Account",
+            "message": f"Disconnect your {acc.provider.title()} account?",
+            "submit_label": "Remove",
+            "submit_class": "btn-danger",
+            "header_class": "bg-danger text-white",
+            "icon": "fas fa-link-slash",
+        }
+        return render(request, self.template_name, ctx)
+
+
+@login_required
+def remove_connection(request, pk: int):
+    if request.method != "POST":
+        return redirect("users-profile")
+
+    acc = get_object_or_404(SocialAccount, pk=pk, user=request.user)
+
+    # Lockout safety: if user has no password and only one connection, block removal
+    only_connection = request.user.socialaccount_set.count() == 1
+    if only_connection and not request.user.has_usable_password():
+        messages.error(
+            request,
+            "You don’t have a password set. Add another social account or set a password before removing your only login method.",
+        )
+        return redirect("users-profile")
+
+    # Optional: remove any stored OAuth tokens for this account
+    SocialToken.objects.filter(account=acc).delete()
+
+    acc.delete()
+
+    messages.success(request, "Connected account removed.")
+    return redirect("users-profile")
 
 
 class DeleteAccountView(LoginRequiredMixin, View):

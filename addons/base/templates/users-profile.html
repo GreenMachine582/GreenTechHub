@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load django_bootstrap5 %}
 {% load modal_form_tags %}
+{% load socialaccount %}
 
 {% block title %}
   Profile - GreenTechHub
@@ -61,26 +62,60 @@
         <div class="card-body">
           {% with accounts=request.user.socialaccount_set.all %}
             {% if accounts %}
-              <ul class="list-group list-group-flush">
+              <ul class="list-group list-group-flush mb-3">
                 {% for acc in accounts %}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>
-                      <i class="fab fa-{% if acc.provider == 'google' %}google{% elif acc.provider == 'github' %}github{% else %}key{% endif %} me-2"></i>
-                      {{ acc.get_provider_display }} <small class="text-muted">({{ acc.uid }})</small>
+                    <span class="d-flex align-items-center gap-2">
+                      {% if acc.provider == "google" %}
+                        <i class="fab fa-google text-danger"></i>
+                      {% elif acc.provider == "github" %}
+                        <i class="fab fa-github"></i>
+                      {% else %}
+                        <i class="fas fa-key"></i>
+                      {% endif %}
+                      <span class="text-capitalize">{{ acc.name }}</span>
                     </span>
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'socialaccount_connections' %}">
-                      Manage
-                    </a>
+
+                    {% if accounts|length == 1 and not request.user.has_usable_password %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-secondary"
+                              title="Add a password or another social account before removing your only login method"
+                              disabled>
+                        Remove
+                      </button>
+                    {% else %}
+                      <button type="button"
+                              class="btn btn-sm btn-outline-danger js-modal"
+                              data-form-url="{% url 'users-delete-connection-confirm' acc.pk %}">
+                        Remove
+                      </button>
+                    {% endif %}
                   </li>
                 {% endfor %}
               </ul>
+
+              {% if not request.user.has_usable_password and accounts|length == 1 %}
+                <div class="alert alert-warning small">
+                  <i class="fas fa-triangle-exclamation me-1"></i>
+                  You don’t have a password set. Add another social account or set a password before removing your only login method.
+                </div>
+              {% endif %}
             {% else %}
-              <p class="text-muted mb-2">No providers linked.</p>
-              <a class="btn btn-sm btn-primary" href="{% url 'socialaccount_login' %}">
-                Link an account
-              </a>
+              <p class="text-muted mb-3">No providers linked.</p>
             {% endif %}
           {% endwith %}
+
+          <div class="d-flex flex-wrap gap-2">
+            {# Connect new providers directly (process=connect) #}
+            <a class="btn btn-sm btn-outline-primary"
+               href="{% provider_login_url 'google' process='connect' next=request.path %}">
+              <i class="fab fa-google me-1"></i> Connect Google
+            </a>
+            <a class="btn btn-sm btn-outline-dark"
+               href="{% provider_login_url 'github' process='connect' next=request.path %}">
+              <i class="fab fa-github me-1"></i> Connect GitHub
+            </a>
+          </div>
         </div>
       </div>
     </div>

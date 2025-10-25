@@ -1,7 +1,7 @@
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import authenticate, login, logout, get_user_model, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect, resolve_url
@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm
 from .models import GroupProfile
 
 User = get_user_model()
@@ -175,3 +175,67 @@ class DeleteAccountView(LoginRequiredMixin, View):
         user.delete()
         messages.success(request, _("Your account has been deleted."))
         return redirect(resolve_url(self.success_url))
+
+
+class AjaxOnlyMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "GET" and request.headers.get("X-Requested-With") != "XMLHttpRequest":
+            # Only allow GET via AJAX to return the modal HTML
+            return redirect("users-profile")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class SetPasswordView(LoginRequiredMixin, AjaxOnlyMixin, View):
+    template_name = "modal_forms/form_modal.html"
+    success_url = "users-profile"
+
+    def get(self, request):
+        form = SetPasswordModalForm(user=request.user)
+        ctx = {
+            "title": "Set password",
+            "action_url": request.path,
+            "form": form,
+            "modal_id": "setPasswordModal",
+            "submit_label": "Set password",
+            "submit_class": "btn-primary",
+        }
+        return render(request, self.template_name, ctx)
+
+    def post(self, request):
+        form = SetPasswordModalForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()  # sets password
+            update_session_auth_hash(request, request.user)  # keep session
+            messages.success(request, "Password set successfully.")
+            return redirect(self.success_url)
+        messages.error(request, "Please correct the errors below.")
+        ctx = {"title": "Set password", "action_url": request.path, "form": form, "modal_id": "setPasswordModal"}
+        return render(request, self.template_name, ctx)
+
+
+class ChangePasswordView(LoginRequiredMixin, AjaxOnlyMixin, View):
+    template_name = "modal_forms/form_modal.html"
+    success_url = "users-profile"
+
+    def get(self, request):
+        form = ChangePasswordModalForm(user=request.user)
+        ctx = {
+            "title": "Change password",
+            "action_url": request.path,
+            "form": form,
+            "modal_id": "changePasswordModal",
+            "submit_label": "Change password",
+            "submit_class": "btn-primary",
+        }
+        return render(request, self.template_name, ctx)
+
+    def post(self, request):
+        form = ChangePasswordModalForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()  # changes password
+            update_session_auth_hash(request, user)
+            messages.success(request, "Password changed successfully.")
+            return redirect(self.success_url)
+        messages.error(request, "Please correct the errors below.")
+        ctx = {"title": "Change password", "action_url": request.path, "form": form, "modal_id": "changePasswordModal"}
+        return render(request, self.template_name, ctx)

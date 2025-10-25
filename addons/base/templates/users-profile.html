@@ -137,15 +137,30 @@
           <strong>Manage Account</strong>
         </div>
         <div class="card-body">
-          <p class="mb-3">Permanently delete your account and profile. This action cannot be undone.</p>
+          {% if request.user.has_usable_password %}
+            <button type="button"
+                    class="btn btn-outline-primary js-modal"
+                    data-form-url="{% url 'users-change-password' %}">
+              <i class="fas fa-key me-1"></i> Change password
+            </button>
+          {% else %}
+            <button type="button"
+                    class="btn btn-outline-primary js-modal"
+                    data-form-url="{% url 'users-set-password' %}">
+              <i class="fas fa-key me-1"></i> Set password
+            </button>
+            <div class="form-text mt-2">
+              You currently sign in via a social account. Set a password to enable password login and avoid lockouts.
+            </div>
+          {% endif %}
+
+          <hr class="my-4">
+
           <button type="button"
                   class="btn btn-danger js-modal"
                   data-form-url="{% url 'users-delete-account' %}">
             <i class="fas fa-trash-can me-1"></i> Delete my account
           </button>
-
-          {# Empty host for fetched modal HTML #}
-          <div id="modalHost"></div>
         </div>
       </div>
     </div>
@@ -169,32 +184,6 @@
       }
     });
   });
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const host = document.getElementById("modalHost");
-  if (!host) return;
-
-  document.body.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".js-modal");
-    if (!btn) return;
-
-    const url = btn.getAttribute("data-modal-url");
-    if (!url) return;
-
-    const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-    if (!res.ok) return;
-
-    host.innerHTML = await res.text();
-
-    // find modal element (the included template must have .modal root)
-    const modalEl = host.querySelector(".modal");
-    if (!modalEl) return;
-
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-  });
-});
 </script>
 
 {% endblock %}

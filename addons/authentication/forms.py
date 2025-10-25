@@ -1,6 +1,7 @@
 
 from django import forms
 from django.contrib.auth import password_validation
+from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.auth.models import User, UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -96,3 +97,35 @@ class UserRegistrationForm(forms.ModelForm):
                            ValidationError("Must be 8+ characters with an uppercase, lowercase, number, and a special "
                                            "character."))
         return password
+
+
+class SetPasswordModalForm(SetPasswordForm):
+    # Inherit; Django handles new_password1/new_password2
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # new_password1
+        self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "placeholder": "Jo4Do3",          # your preferred sample
+            "class": "form-control",
+        })
+        self.fields["new_password1"].help_text = (
+            self.fields["new_password1"].help_text
+            or password_validation.password_validators_help_text_html()
+        )
+
+
+class ChangePasswordModalForm(PasswordChangeForm):
+    # Inherit; Django handles old_password/new_password1/new_password2
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "placeholder": "New password",
+            "class": "form-control",
+        })
+        self.fields["new_password1"].help_text = (
+            self.fields["new_password1"].help_text
+            or password_validation.password_validators_help_text_html()
+        )

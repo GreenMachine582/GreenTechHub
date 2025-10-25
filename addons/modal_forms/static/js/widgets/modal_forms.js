@@ -1,4 +1,5 @@
 import { select, on, getCookie } from "../helpers.js";
+import { Bootstrap } from "../bootstrap.js";
 
 (function () {
   'use strict';
@@ -41,6 +42,7 @@ import { select, on, getCookie } from "../helpers.js";
       });
       const html = await res.text();
       modalContent.innerHTML = html;
+      Bootstrap.widgets.Password.init();
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
       modal.show();
     } catch (err) {

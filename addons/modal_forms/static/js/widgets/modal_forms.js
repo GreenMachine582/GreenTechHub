@@ -4,6 +4,37 @@ import { Bootstrap } from "../bootstrap.js";
 (function () {
   'use strict';
 
+  async function handleAuthRedirect(res) {
+    // 1) HTMX-compatible redirect header
+    const hx = res.headers.get("HX-Redirect");
+    if (hx) {
+      window.location.assign(hx);
+      return true;
+    }
+
+    // 2) JSON payload: {redirect: "..."}
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      try {
+        const data = await res.json();
+        if (data && data.redirect) {
+          window.location.assign(data.redirect);
+          return true;
+        }
+      } catch {
+        // ignore JSON parse errors and fall through
+      }
+    }
+
+    // 3) Fallbacks: try the response URL or reload
+    if (res.url) {
+      window.location.assign(res.url);
+      return true;
+    }
+    window.location.reload();
+    return true;
+  }
+
   // Click handler for any .js-modal trigger
   on("click", document, async (e) => {
     const trigger = e.target.closest(".js-modal");
@@ -40,6 +71,14 @@ import { Bootstrap } from "../bootstrap.js";
       const res = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
       });
+
+      // If unauthenticated, backend returns 401 with redirect info
+      if (res.status === 401) {
+        await handleAuthRedirect(res);
+        return;
+      }
+
+      // In case some middleware returned a 3xx we didn't expect (fetch follows redirects)
       const html = await res.text();
       modalContent.innerHTML = html;
       Bootstrap.widgets.Password.init();

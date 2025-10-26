@@ -7,9 +7,16 @@ from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect
 from django.utils.http import http_date
 from django.utils.timezone import now
+from django.views import View as _View
 
 from .forms import ProfileForm
 from .models import Profile
+from .utils.mixins import AjaxAwareLoginRequiredMixin
+
+
+class LoginRequiredView(AjaxAwareLoginRequiredMixin, _View):
+    """Base view class with AjaxAwareLoginRequiredMixin. Used by modal form views."""
+    pass
 
 
 def home(request):

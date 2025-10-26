@@ -2,16 +2,15 @@
 from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, get_user_model, update_session_auth_hash
+from django.contrib.auth import (authenticate, login, logout, get_user_model, update_session_auth_hash,
+                                 REDIRECT_FIELD_NAME)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotAllowed
 from django.shortcuts import render, redirect, resolve_url, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.utils.decorators import method_decorator
 from django.utils.html import escape
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
-from django.views import View
+from django.views.decorators.http import require_POST
 from django.views.generic import FormView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -19,9 +18,10 @@ from rest_framework.response import Response
 
 from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm
 from .models import GroupProfile
+from ..base.views import LoginRequiredView
+from ..base.utils.mixins import AjaxOnlyMixin
 
 User = get_user_model()
-
 
 class UserRegistrationFormView(FormView):
     form_class = UserRegistrationForm
@@ -32,7 +32,7 @@ class UserRegistrationFormView(FormView):
         new_user = form.save()
         login(self.request, new_user)  # Sign user in after registration
         messages.success(self.request, "Your account has been created successfully!")
-        return super().form_valid(new_user)
+        return super().form_valid(form)
 
     def form_invalid(self, form):
         error_message = "<p>Failed to register. Please correct the errors below: </p><ul>"
@@ -61,11 +61,16 @@ def user_login(request):
             else:
                 request.session.set_expiry(60 * 60)  # 1 hr
 
+            next_url = request.POST.get(REDIRECT_FIELD_NAME) or request.GET.get(REDIRECT_FIELD_NAME)
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
             return redirect("home")
-        else:
-            messages.error(request, "Invalid username or password.")
-            return redirect("login")
-    return render(request, 'users-login.html')
+        messages.error(request, "Invalid username or password.")
+        return redirect("login")
+
+    # Ensure template includes a hidden 'next' field if present
+    ctx = {REDIRECT_FIELD_NAME: request.GET.get(REDIRECT_FIELD_NAME, "")}
+    return render(request, 'users-login.html', ctx)
 
 
 def user_logout(request):
@@ -110,9 +115,9 @@ def access_check(request):
     return Response({'allowed': False})
 
 
-@method_decorator(login_required, name="dispatch")
-class RemoveConnectionConfirmView(View):
+class RemoveConnectionConfirmView(LoginRequiredView):
     template_name = "modal_forms/confirm_modal.html"
+    redirect_url = "users-profile"
 
     def get(self, request, pk):
         # AJAX-only modal body
@@ -130,11 +135,9 @@ class RemoveConnectionConfirmView(View):
         return render(request, self.template_name, ctx)
 
 
+@require_POST
 @login_required
 def remove_connection(request, pk: int):
-    if request.method != "POST":
-        return redirect("users-profile")
-
     acc = get_object_or_404(SocialAccount, pk=pk, user=request.user)
 
     # Lockout safety: if user has no password and only one connection, block removal
@@ -155,7 +158,7 @@ def remove_connection(request, pk: int):
     return redirect("users-profile")
 
 
-class DeleteAccountView(LoginRequiredMixin, View):
+class DeleteAccountView(AjaxOnlyMixin, LoginRequiredView):
     """
     GET (AJAX): returns the confirmation modal HTML.
     POST: validates confirm_text/password, logs out, deletes account, redirects.
@@ -177,19 +180,13 @@ class DeleteAccountView(LoginRequiredMixin, View):
     required_text = "DELETE"
 
     success_url = "/"  # or reverse_lazy("home")
-
-    def _is_ajax(self, request) -> bool:
-        return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    redirect_url = "users-profile"
 
     def _wouldRemoveLastSuperuser(self, u: User) -> bool:
         return u.is_superuser and User.objects.filter(is_superuser=True).exclude(pk=u.pk).count() == 0
 
     # ---------- GET: return modal HTML (AJAX only) ----------
     def get(self, request, *args, **kwargs):
-        if not self._is_ajax(request):
-            # Don’t allow full-page GET; only modal fetches
-            return HttpResponseNotAllowed(["POST"])
-
         context = {
             "action_url": request.path,
             "modal_id": "deleteAccountModal",
@@ -206,9 +203,8 @@ class DeleteAccountView(LoginRequiredMixin, View):
     # ---------- POST: perform deletion ----------
     def post(self, request, *args, **kwargs):
         user = request.user
-        # Require typing DELETE
         confirm_text = (request.POST.get("confirm_text") or "").strip()
-        if confirm_text != "DELETE":
+        if confirm_text != self.required_text:
             messages.error(request, _(f'Please type "{self.required_text}" to confirm.'))
             return redirect("users-profile")
 
@@ -225,15 +221,7 @@ class DeleteAccountView(LoginRequiredMixin, View):
         return redirect(resolve_url(self.success_url))
 
 
-class AjaxOnlyMixin:
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == "GET" and request.headers.get("X-Requested-With") != "XMLHttpRequest":
-            # Only allow GET via AJAX to return the modal HTML
-            return redirect("users-profile")
-        return super().dispatch(request, *args, **kwargs)
-
-
-class SetPasswordView(LoginRequiredMixin, AjaxOnlyMixin, View):
+class SetPasswordView(LoginRequiredView, AjaxOnlyMixin):
     template_name = "modal_forms/form_modal.html"
     success_url = "users-profile"
 
@@ -261,7 +249,7 @@ class SetPasswordView(LoginRequiredMixin, AjaxOnlyMixin, View):
         return render(request, self.template_name, ctx)
 
 
-class ChangePasswordView(LoginRequiredMixin, AjaxOnlyMixin, View):
+class ChangePasswordView(LoginRequiredView, AjaxOnlyMixin):
     template_name = "modal_forms/form_modal.html"
     success_url = "users-profile"
 

@@ -54,20 +54,12 @@ def user_profile(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        msg = ""
         if "clear_avatar" in request.POST:
             msg = "Uploaded avatar removed. Using provider avatar if available."
-        if "refresh_from_provider" in request.POST:
-            msg = "Provider avatar refreshed."
-
-        if msg:
             if profile.avatar:
                 profile.avatar.delete(save=False)
             profile.avatar = None
-            profile.avatar_source = "google" if "googleusercontent" in (profile.avatar_url or "") else (
-                "github" if profile.avatar_url else "none"
-            )
-            profile.save(update_fields=["avatar", "avatar_source"])
+            profile.save(update_fields=["avatar"])
             messages.success(request, msg)
             return redirect("users-profile")
 
@@ -81,9 +73,18 @@ def user_profile(request):
     else:
         form = ProfileForm(instance=profile)
 
-    connected = list(SocialAccount.objects.filter(user=request.user))
-    return render(request, "users-profile.html", {
-        "form": form,
-        "connected_accounts": connected,
-    })
+    # Social accounts + provider list for template logic
+    connected_qs = SocialAccount.objects.filter(user=request.user)
+    connected_accounts = list(connected_qs)
+    connected_providers = list(connected_qs.values_list("provider", flat=True))
+
+    return render(
+        request,
+        "users-profile.html",
+        {
+            "form": form,
+            "connected_accounts": connected_accounts,   # if you still use it elsewhere
+            "connected_providers": connected_providers, # use this to disable Connect buttons
+        },
+    )
 

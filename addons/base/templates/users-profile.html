@@ -107,14 +107,29 @@
 
           <div class="d-flex flex-wrap gap-2">
             {# Connect new providers directly (process=connect) #}
-            <a class="btn btn-sm btn-outline-primary"
-               href="{% provider_login_url 'google' process='connect' next=request.path %}">
-              <i class="fab fa-google me-1"></i> Connect Google
-            </a>
-            <a class="btn btn-sm btn-outline-dark"
-               href="{% provider_login_url 'github' process='connect' next=request.path %}">
-              <i class="fab fa-github me-1"></i> Connect GitHub
-            </a>
+
+            {% if "google" in connected_providers %}
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Already connected to Google">
+                <i class="fab fa-google me-1 text-danger"></i> Connected
+              </button>
+            {% else %}
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{% provider_login_url 'google' process='connect' next=request.path %}">
+                <i class="fab fa-google me-1"></i> Connect Google
+              </a>
+            {% endif %}
+
+            {% if "github" in connected_providers %}
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Already connected to GitHub">
+                <i class="fab fa-github me-1"></i> Connected
+              </button>
+            {% else %}
+              <a class="btn btn-sm btn-outline-dark"
+                 href="{% provider_login_url 'github' process='connect' next=request.path %}">
+                <i class="fab fa-github me-1"></i> Connect GitHub
+              </a>
+            {% endif %}
+
           </div>
         </div>
       </div>
@@ -146,12 +161,6 @@
               {% if request.user.profile.avatar %}
               <button class="btn btn-outline-danger" name="clear_avatar" value="1" type="submit">
                 <i class="bi bi-trash me-1"></i> Remove uploaded avatar
-              </button>
-              {% endif %}
-
-              {% if request.user.profile.avatar_url %}
-              <button class="btn btn-outline-secondary" name="refresh_from_provider" value="1" type="submit">
-                <i class="bi bi-arrow-clockwise me-1"></i> Refresh provider avatar
               </button>
               {% endif %}
             </div>

@@ -23,13 +23,13 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    path('', include(f"addons.{app.name}.urls"))
+    for app in scandir(settings.ADDONS_DIR) if app.is_dir() and (settings.ADDONS_DIR / app.name / "urls.py").exists()
 ]
 
 urlpatterns += [
-    path('', include(f"addons.{app.name}.urls"))
-    for app in scandir(settings.ADDONS_DIR) if app.is_dir() and (settings.ADDONS_DIR / app.name / "urls.py").exists()
+    path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:

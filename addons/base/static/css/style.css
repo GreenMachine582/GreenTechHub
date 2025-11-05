@@ -6,6 +6,7 @@
 --------------------------------------------------------------*/
 :root {
   scroll-behavior: smooth;
+  --pw-ext-icon-space: 2.75rem;
 }
 
 body {
@@ -103,6 +104,23 @@ h6 {
 /*--------------------------------------------------------------
 # Override some default Bootstrap stylings
 --------------------------------------------------------------*/
+/* Add space on the right only when the extension injects its marker attrs */
+input.form-control[type="password"][data-np-uid],
+input.form-control[data-np-autofill-field-type="newPassword"] {
+  padding-right: calc(var(--bs-form-control-padding-x, .75rem) + var(--pw-ext-icon-space)) !important;
+}
+
+/* Push Bootstrap's valid/invalid background icon left so it doesn't sit under NordPass */
+input.form-control.is-valid[type="password"][data-np-uid],
+input.form-control.is-valid[data-np-autofill-field-type="newPassword"] {
+  background-position: right calc(.375rem + .1875rem + var(--pw-ext-icon-space)) center !important;
+}
+
+input.form-control.is-invalid[type="password"][data-np-uid],
+input.form-control.is-invalid[data-np-autofill-field-type="newPassword"] {
+  background-position: right calc(.375rem + .1875rem + var(--pw-ext-icon-space)) center !important;
+}
+
 /* Dropdown menus */
 .dropdown-menu {
   border-radius: 4px;

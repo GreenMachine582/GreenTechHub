@@ -1,24 +1,37 @@
+{% load i18n %}
 
+{% with dismissible_=dismissible|default_if_none:True %}
+{% with static_=modal_static|default_if_none:False %}
+{% with STATIC_FLAG=static_|yesno:"1,0" %}
 {% with hc=header_class|default:'bg-primary text-white' %}
-<div class="modal-header {{ hc }}">
-  <h5 class="modal-title">
+<div class="modal-header {{ hc }}"
+     data-modal-static="{{ STATIC_FLAG|default_if_none:False|yesno:'1,0' }}"
+     data-modal-scrollable="{{ modal_scrollable|default_if_none:True|yesno:'1,0' }}">
+  <h5 class="modal-title mb-0">
     {% block modal_icon %}{% if icon %}<i class="{{ icon }} me-2"></i>{% endif %}{% endblock %}
     {% block modal_title %}{{ title|default:"Modal Title" }}{% endblock %}
   </h5>
 
-  <button type="button"
-          class="btn p-0 border-0 bg-transparent ms-auto"
-          data-bs-dismiss="modal"
-          aria-label="Close">
-    <i class="fa-solid fa-xmark fs-4
-              {% if 'text-white' in hc %}text-white
-              {% elif 'text-dark' in hc %}text-dark
-              {% elif 'bg-' in hc %}text-white
-              {% else %}text-body{% endif %}"
-       aria-hidden="true"></i>
-    <span class="visually-hidden">Close</span>
-  </button>
+  {% block modal_header_actions %}{% endblock %}
+
+  {% if dismissible|default_if_none:True %}
+    <button type="button"
+            class="btn p-0 border-0 bg-transparent ms-auto"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}">
+      <i class="fa-solid fa-xmark fs-4
+                {% if 'text-white' in hc %}text-white
+                {% elif 'text-dark' in hc %}text-dark
+                {% elif 'bg-' in hc %}text-white
+                {% else %}text-body{% endif %}"
+         aria-hidden="true"></i>
+      <span class="visually-hidden">{% trans "Close" %}</span>
+    </button>
+  {% endif %}
 </div>
+{% endwith %}
+{% endwith %}
+{% endwith %}
 {% endwith %}
 
 <div class="modal-body">
@@ -27,6 +40,10 @@
 
 <div class="modal-footer">
   {% block modal_footer %}
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    {% if dismissible|default_if_none:True %}
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        {% trans "Close" %}
+      </button>
+    {% endif %}
   {% endblock %}
 </div>

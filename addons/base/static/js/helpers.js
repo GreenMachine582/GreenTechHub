@@ -91,3 +91,20 @@ export const getCookie = (name) => {
   }
   return val;
 };
+
+/**
+ * Convert string/number/unknown to boolean.
+ * Accepts: 1, "1", "true", "True", "yes", "on", "y".
+ * Everything else becomes false.
+ */
+export const toBool = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+
+  if (typeof value === "string") {
+    const val = value.trim().toLowerCase();
+    return ["1", "true", "yes", "on", "y"].includes(val);
+  }
+
+  return false;
+};

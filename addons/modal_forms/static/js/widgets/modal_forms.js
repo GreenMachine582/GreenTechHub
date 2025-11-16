@@ -1,8 +1,8 @@
-import { select, on, getCookie } from "../helpers.js";
+import { select, on, toBool } from "../helpers.js";
 import { Bootstrap } from "../bootstrap.js";
 
 (function () {
-  'use strict';
+  "use strict";
 
   async function handleAuthRedirect(res) {
     // 1) HTMX-compatible redirect header
@@ -81,8 +81,33 @@ import { Bootstrap } from "../bootstrap.js";
       // In case some middleware returned a 3xx we didn't expect (fetch follows redirects)
       const html = await res.text();
       modalContent.innerHTML = html;
-      Bootstrap.widgets.Password.init();
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+      // Re-init any widgets inside the modal
+      if (Bootstrap?.widgets?.Password?.init) {
+        Bootstrap.widgets.Password.init();
+      }
+
+      // Look for the static flag inside the newly loaded content
+      const headerEl = modalContent.querySelector(".modal-header");
+      const staticFlag = headerEl?.dataset.modalStatic;
+      const isStatic = toBool(staticFlag);
+
+      // Create a modal instance with per-popup options
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+        backdrop: isStatic ? "static" : true,
+        keyboard: !isStatic,
+      });
+
+      // Look for the scrollable flag
+      const scrollFlag = headerEl?.dataset.modalScrollable;
+      const isScrollable = toBool(scrollFlag);
+
+      // Apply scrollability to the modal-dialog element
+      const dialogEl = modalEl.querySelector(".modal-dialog");
+      if (dialogEl) {
+        dialogEl.classList.toggle("modal-dialog-scrollable", isScrollable);
+      }
+
       modal.show();
     } catch (err) {
       console.error("Failed to load modal content:", err);

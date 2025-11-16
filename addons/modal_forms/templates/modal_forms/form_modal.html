@@ -1,47 +1,74 @@
 {% extends "modal_forms/base_modal.html" %}
+{% load django_bootstrap5 static %}
 
-{% with header_class=header_class|default:"bg-warning text-dark" %}
+{% with BASE_ID=form_id|default:modal_id|default:"modalForm" %}
   {% block modal_title %}
     {{ title|default:"Update" }}
   {% endblock %}
 
   {% block modal_body %}
-    <form method="post" action="{{ action_url }}" id="{{ modal_id }}Form" novalidate>
+    <form
+      method="{{ method|default:'post'|upper }}"
+      {% if action_url %} action="{{ action_url }}"{% endif %}
+      id="{{ BASE_ID|add:'Form' }}"
+      class="needs-validation"
+      {% if form and form.is_multipart %} enctype="multipart/form-data"{% endif %}
+      novalidate
+    >
       {% csrf_token %}
+
       {% if message %}<p class="mb-3">{{ message }}</p>{% endif %}
-      {% if message_html %}<p class="mb-3">{{ message_html|safe }}</p>{% endif %}
+      {% if message_html %}<div class="mb-3">{{ message_html|safe }}</div>{% endif %}
+
+      {# Hidden extras, e.g. next=… #}
       {% if extra_hidden_inputs %}
         {% for h in extra_hidden_inputs %}
           <input type="hidden" name="{{ h.name }}" value="{{ h.value }}">
         {% endfor %}
       {% endif %}
 
-      {% block form_fields %}
-        {% if form %}
-          {% for field in form %}
-            <div class="mb-3">
-              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-              {{ field }}
-              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-              {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>{% endif %}
-            </div>
-          {% endfor %}
+      {% block form_before %}{% endblock %}
 
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-          {% endif %}
-        {% endif %}
-      {% endblock %}
+      {% if form %}
+        {% bootstrap_form form alert_error_type='all' %}
+      {% endif %}
+
+      {% block form_after %}{% endblock %}
+
+      {# Optional confirm text to enable submit (for destructive actions) #}
+      {% if require_text %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ BASE_ID|add:'Form' }}ConfirmInput">
+            {% if require_text_label %}{{ require_text_label }}{% else %}
+              Type <code>{{ require_text }}</code> to confirm
+            {% endif %}
+          </label>
+          <input type="text"
+                 id="{{ BASE_ID|add:'Form' }}ConfirmInput"
+                 class="form-control"
+                 data-required-text="{{ require_text }}">
+          <div class="form-text">
+            {% if require_text_help %}{{ require_text_help }}{% else %}This prevents accidental submissions.{% endif %}
+          </div>
+        </div>
+      {% endif %}
   {% endblock %}
 
   {% block modal_footer %}
-    {{ block.super }}
-    {# submit auto-disables if require_text is used by children (used by delete confirmation modal #}
-    <button type="submit" form="{{ modal_id }}Form" class="btn {{ submit_class|default:'btn-primary' }}"
-            id="{{ modal_id }}SubmitBtn"
-            {% if require_text %}disabled{% endif %}>
+    {{ block.super }} {# keeps the default Close button from base_modal #}
+
+    <button
+      type="submit"
+      form="{{ BASE_ID|add:'Form' }}"
+      class="btn {{ submit_class|default:'btn-primary' }}"
+      id="{{ BASE_ID|add:'Form' }}SubmitBtn"
+      {% if require_text %}disabled{% endif %}
+      data-loading-text="{{ submit_loading_text|default:'Saving…' }}"
+    >
+      {% if submit_icon %}<i class="{{ submit_icon }} me-1"></i>{% endif %}
       {{ submit_label|default:"Save" }}
     </button>
-    </form> {# close the form started in modal_body #}
+
+    </form> {# close the form opened in modal_body #}
   {% endblock %}
 {% endwith %}

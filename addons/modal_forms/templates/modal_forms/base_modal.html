@@ -1,12 +1,9 @@
 {% load i18n %}
 
-{% with dismissible_=dismissible|default_if_none:True %}
-{% with static_=modal_static|default_if_none:False %}
-{% with STATIC_FLAG=static_|yesno:"1,0" %}
 {% with hc=header_class|default:'bg-primary text-white' %}
 <div class="modal-header {{ hc }}"
-     data-modal-static="{{ STATIC_FLAG|default_if_none:False|yesno:'1,0' }}"
-     data-modal-scrollable="{{ modal_scrollable|default_if_none:True|yesno:'1,0' }}">
+     data-modal-static="{{ static_flag|yesno:'1,0' }}"
+     data-modal-scrollable="{{ modal_scrollable|default:True|yesno:'1,0' }}">
   <h5 class="modal-title mb-0">
     {% block modal_icon %}{% if icon %}<i class="{{ icon }} me-2"></i>{% endif %}{% endblock %}
     {% block modal_title %}{{ title|default:"Modal Title" }}{% endblock %}
@@ -14,7 +11,7 @@
 
   {% block modal_header_actions %}{% endblock %}
 
-  {% if dismissible|default_if_none:True %}
+  {% if modal_dismissible|default_if_none:True %}
     <button type="button"
             class="btn p-0 border-0 bg-transparent ms-auto"
             data-bs-dismiss="modal"
@@ -30,9 +27,6 @@
   {% endif %}
 </div>
 {% endwith %}
-{% endwith %}
-{% endwith %}
-{% endwith %}
 
 <div class="modal-body">
   {% block modal_body %}{% endblock %}
@@ -40,7 +34,7 @@
 
 <div class="modal-footer">
   {% block modal_footer %}
-    {% if dismissible|default_if_none:True %}
+    {% if modal_dismissible|default_if_none:True %}
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
         {% trans "Close" %}
       </button>

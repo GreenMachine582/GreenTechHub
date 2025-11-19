@@ -1,8 +1,8 @@
-FROM pybase:3.11
+FROM pybase:3.14
 
 # Prevents Python from writing .pyc files and buffering stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set work directory
 WORKDIR /app
@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8000
 
 # Default command
-CMD ["gunicorn", "server.wsgi:application", "--bind", "000.0.0.0:8000"]
+CMD ["gunicorn", "server.wsgi:application", "--bind", "0.0.0.0:8000"]

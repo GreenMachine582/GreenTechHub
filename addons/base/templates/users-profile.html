@@ -184,14 +184,24 @@
           {% if request.user.has_usable_password %}
             <button type="button"
                     class="btn btn-outline-primary js-modal"
-                    data-form-url="{% url 'users-change-password' %}">
+                    data-form-url="{% url 'password-change-modal' %}">
               <i class="fas fa-key me-1"></i> Change password
+            </button>
+            <button type="button"
+                    class="btn btn-outline-secondary js-modal"
+                    data-form-url="{% url 'password-reset-modal' %}">
+              <i class="fas fa-envelope me-1"></i> Email a reset link
             </button>
           {% else %}
             <button type="button"
                     class="btn btn-outline-primary js-modal"
                     data-form-url="{% url 'users-set-password' %}">
               <i class="fas fa-key me-1"></i> Set password
+            </button>
+            <button type="button"
+                    class="btn btn-outline-secondary js-modal"
+                    data-form-url="{% url 'password-reset-modal' %}">
+              <i class="fas fa-envelope me-1"></i> Email a set-password link
             </button>
             <div class="form-text mt-2">
               You currently sign in via a social account. Set a password to enable password login and avoid lockouts.

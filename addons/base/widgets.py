@@ -39,10 +39,8 @@ class BootstrapInputMixin(BootstrapWidgetMixin):
     """A mixin to extend input widgets with Bootstrap 5 support."""
     default_class = "form-control"
 
-    def __init__(self, attrs=None, placeholder=None, prepend=None, append=None, **kwargs):
+    def __init__(self, attrs=None, prepend=None, append=None, **kwargs):
         super().__init__(attrs=attrs, **kwargs)
-        if placeholder:
-            self.attrs["placeholder"] = placeholder
         self.prepend = prepend
         self.append = append
 
@@ -75,19 +73,24 @@ class URLInput(BootstrapInputMixin, widgets.URLInput):
     template_name = "widgets/bootstrap_input.html"
 
 
+class NormalPasswordInput(BootstrapInputMixin, widgets.PasswordInput):
+    """Bootstrap-styled URL Input."""
+    template_name = "widgets/bootstrap_input.html"
+
+
 class PasswordInput(BootstrapInputMixin, widgets.PasswordInput):
     """
     Bootstrap 5 styled password input with optional visibility toggle.
     """
     template_name = "widgets/bootstrap_password.html"
 
-    def __init__(self, attrs=None, render_value=False, placeholder="Enter password", **kwargs):
+    def __init__(self, attrs=None, render_value: bool = False, **kwargs):
         """
         :param attrs: HTML attributes
         :param render_value: Whether to render the password value
         :param placeholder: Placeholder text
         """
-        super().__init__(attrs=attrs, placeholder=placeholder, **kwargs)
+        super().__init__(attrs=attrs, **kwargs)
         self.render_value = render_value
 
 

@@ -1,14 +1,16 @@
 
+import re
+
+from allauth.account.forms import (ChangePasswordForm as _ChangePasswordForm, ResetPasswordForm as _ResetPasswordForm,
+                                   ResetPasswordKeyForm as _ResetPasswordKeyForm, SetPasswordForm as _SetPasswordForm)
+from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.auth.models import User, UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from ..base import widgets
-
-import re
 
 
 def validate_password_strength(value):
@@ -62,7 +64,7 @@ class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(
         label=_("Password"),
         strip=False,
-        widget=widgets.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": "Jo4Do3"}),
+        widget=widgets.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": "Jo4Do3!&"}),
         help_text=password_validation.password_validators_help_text_html(),
     )
 
@@ -99,33 +101,34 @@ class UserRegistrationForm(forms.ModelForm):
         return password
 
 
-class SetPasswordModalForm(SetPasswordForm):
-    # Inherit; Django handles new_password1/new_password2
+class SetPasswordModalForm(BSModalForm, _SetPasswordForm):
+    class Meta:
+        fields = ("new_password1", "new_password2")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # new_password1
         self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
             "autocomplete": "new-password",
-            "placeholder": "Jo4Do3",          # your preferred sample
-            "class": "form-control",
+            "placeholder": _("Jo4Do3!&"),
         })
         self.fields["new_password1"].help_text = (
             self.fields["new_password1"].help_text
             or password_validation.password_validators_help_text_html()
         )
 
+class ChangePasswordModalForm(BSModalForm, _ChangePasswordForm):
+    class Meta:
+        fields = ("oldpassword", "password1", "password2")
 
-class ChangePasswordModalForm(PasswordChangeForm):
-    # Inherit; Django handles old_password/new_password1/new_password2
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
-            "autocomplete": "new-password",
-            "placeholder": "New password",
-            "class": "form-control",
-        })
-        self.fields["new_password1"].help_text = (
-            self.fields["new_password1"].help_text
-            or password_validation.password_validators_help_text_html()
-        )
+        required_fields = ["oldpassword", "password1", "password2"]
+        for f in required_fields:
+            if f in self.fields:
+                self.fields[f].required = True
+        if "password1" in self.fields:
+            self.fields["password1"].widget = widgets.PasswordInput(attrs={
+                "autocomplete": "new-password",
+                "placeholder": _("New password"),
+            })
+            self.fields["password1"].help_text = ""

@@ -1,10 +1,12 @@
 
 from allauth.socialaccount.models import SocialAccount, SocialToken
+from bootstrap_modal_forms.generic import BSModalFormView
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import (authenticate, login, logout, get_user_model, update_session_auth_hash,
                                  REDIRECT_FIELD_NAME)
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, resolve_url, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.html import escape
@@ -16,10 +18,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm
+from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm, ResetPasswordModalForm
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
 from ..base.utils.mixins import AjaxOnlyMixin
+from ..modal_forms.mixins import ModalFormMixin
 
 User = get_user_model()
 
@@ -221,57 +224,42 @@ class DeleteAccountView(AjaxOnlyMixin, LoginRequiredView):
         return redirect(resolve_url(self.success_url))
 
 
-class SetPasswordView(LoginRequiredView, AjaxOnlyMixin):
-    template_name = "modal_forms/form_modal.html"
-    success_url = "users-profile"
+class ChangePasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView):
+    template_name = "account/modals/password_change.html"
+    form_class = ChangePasswordModalForm
+    success_message = "Password changed successfully."
+    extra_context = {
+        "action_url": reverse_lazy("password-change-modal"),
+    }
 
-    def get(self, request):
-        form = SetPasswordModalForm(user=request.user)
-        ctx = {
-            "title": "Set password",
-            "action_url": request.path,
-            "form": form,
-            "modal_id": "setPasswordModal",
-            "submit_label": "Set password",
-            "submit_class": "btn-primary",
-        }
-        return render(request, self.template_name, ctx)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
-    def post(self, request):
-        form = SetPasswordModalForm(user=request.user, data=request.POST)
-        if form.is_valid():
-            form.save()  # sets password
-            update_session_auth_hash(request, request.user)  # keep session
-            messages.success(request, "Password set successfully.")
-            return redirect(self.success_url)
-        messages.error(request, "Please correct the errors below.")
-        ctx = {"title": "Set password", "action_url": request.path, "form": form, "modal_id": "setPasswordModal"}
-        return render(request, self.template_name, ctx)
+    def get_success_url(self):
+        nxt = self.request.GET.get("next") or self.request.POST.get("next")
+        return nxt or super().get_success_url()
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
-class ChangePasswordView(LoginRequiredView, AjaxOnlyMixin):
-    template_name = "modal_forms/form_modal.html"
-    success_url = "users-profile"
+class ResetPasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView):
+    template_name = "account/modals/password_reset.html"
+    form_class = ResetPasswordModalForm
+    success_message = "Password reset email sent to {email}."
+    extra_context = {
+        "action_url": reverse_lazy("password-reset-modal"),
+    }
 
-    def get(self, request):
-        form = ChangePasswordModalForm(user=request.user)
-        ctx = {
-            "title": "Change password",
-            "action_url": request.path,
-            "form": form,
-            "modal_id": "changePasswordModal",
-            "submit_label": "Change password",
-            "submit_class": "btn-primary",
-        }
-        return render(request, self.template_name, ctx)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.setdefault("initial", {})
+        kwargs["initial"]["email"] = self.request.user.email
+        return kwargs
 
-    def post(self, request):
-        form = ChangePasswordModalForm(user=request.user, data=request.POST)
-        if form.is_valid():
-            user = form.save()  # changes password
-            update_session_auth_hash(request, user)
-            messages.success(request, "Password changed successfully.")
-            return redirect(self.success_url)
-        messages.error(request, "Please correct the errors below.")
-        ctx = {"title": "Change password", "action_url": request.path, "form": form, "modal_id": "changePasswordModal"}
-        return render(request, self.template_name, ctx)
+    def form_valid(self, form):
+        form.save(self.request)
+        return super().form_valid(form)

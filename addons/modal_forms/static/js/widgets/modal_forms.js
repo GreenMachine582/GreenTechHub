@@ -4,6 +4,73 @@ import { Bootstrap } from "../bootstrap.js";
 (function () {
   "use strict";
 
+  const MODAL_SELECTOR = "#globalModal";
+  let pendingModalUrl = null;
+
+  // ----- Shared helpers -----------------------------------------------------
+
+  function getModalElements() {
+    const modalEl = select(MODAL_SELECTOR);
+    if (!modalEl) {
+      console.error("globalModal root not found");
+      return {};
+    }
+
+    const modalContent = select(".modal-content", false, modalEl);
+    if (!modalContent) {
+      console.error("No .modal-content found inside #globalModal");
+      return {};
+    }
+
+    return { modalEl, modalContent };
+  }
+
+  function initModalWidgets(modalContent) {
+    // Re-init any widgets inside the modal
+    if (Bootstrap?.widgets?.Password?.init) {
+      Bootstrap.widgets.Password.init();
+    }
+  }
+
+  function applyModalOptions(modalEl, modalContent) {
+    const headerEl = modalContent.querySelector(".modal-header");
+
+    // Static / dismissible flag
+    const staticFlag = headerEl?.dataset.modalStatic;
+    const isStatic = toBool(staticFlag);
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+      backdrop: isStatic ? "static" : true,
+      keyboard: !isStatic,
+    });
+
+    // Scrollable flag
+    const scrollFlag = headerEl?.dataset.modalScrollable;
+    const isScrollable = toBool(scrollFlag);
+
+    const dialogEl = modalEl.querySelector(".modal-dialog");
+    if (dialogEl) {
+      dialogEl.classList.toggle("modal-dialog-scrollable", isScrollable);
+    }
+
+    return modal;
+  }
+
+  async function loadModalFromResponse(res, { show = true } = {}) {
+    const { modalEl, modalContent } = getModalElements();
+    if (!modalEl || !modalContent) return;
+
+    const html = await res.text();
+    modalContent.innerHTML = html;
+
+    initModalWidgets(modalContent);
+    const modal = applyModalOptions(modalEl, modalContent);
+
+    if (show) {
+      modal.show();
+    }
+  }
+
   async function handleAuthRedirect(res) {
     // 1) HTMX-compatible redirect header
     const hx = res.headers.get("HX-Redirect");
@@ -35,7 +102,8 @@ import { Bootstrap } from "../bootstrap.js";
     return true;
   }
 
-  // Click handler for any .js-modal trigger
+  // ----- Open modal on .js-modal click --------------------------------------
+
   on("click", document, async (e) => {
     const trigger = e.target.closest(".js-modal");
     if (!trigger) return;
@@ -48,75 +116,84 @@ import { Bootstrap } from "../bootstrap.js";
     if (!url || url === "#") return;
     e.preventDefault();
 
-    const modalEl = select("#globalModal");
-    if (!modalEl) {
-      console.error("globalModal root not found");
-      return;
-    }
+    const { modalEl, modalContent } = getModalElements();
+    if (!modalEl || !modalContent) return;
 
     // If django-bootstrap-modal-forms is available, prefer it
     if (window.jQuery && typeof window.jQuery.fn.modalForm === "function") {
-      window.jQuery(trigger).modalForm({ formURL: url, modalID: "#globalModal" });
+      window.jQuery(trigger).modalForm({ formURL: url, modalID: MODAL_SELECTOR });
+      return;
+    }
+
+    const bsModal = bootstrap.Modal.getInstance(modalEl);
+
+    // If modal is already shown, treat this as a "toggle":
+    // close first, then load the new content in hidden.bs.modal
+    if (bsModal && modalEl.classList.contains("show")) {
+      pendingModalUrl = url;
+      bsModal.hide();
       return;
     }
 
     // Fallback: fetch partial into modal then show
-    const modalContent = select(".modal-content", false, modalEl);
-    if (!modalContent) {
-      console.error("No .modal-content found inside #globalModal");
-      return;
-    }
-
     try {
       const res = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
       });
 
-      // If unauthenticated, backend returns 401 with redirect info
-      if (res.status === 401) {
+      // If unauthenticated or redirected, let handler take over
+      if (res.status === 401 || res.redirected) {
         await handleAuthRedirect(res);
         return;
       }
 
-      // In case some middleware returned a 3xx we didn't expect (fetch follows redirects)
-      const html = await res.text();
-      modalContent.innerHTML = html;
-
-      // Re-init any widgets inside the modal
-      if (Bootstrap?.widgets?.Password?.init) {
-        Bootstrap.widgets.Password.init();
-      }
-
-      // Look for the static flag inside the newly loaded content
-      const headerEl = modalContent.querySelector(".modal-header");
-      const staticFlag = headerEl?.dataset.modalStatic;
-      const isStatic = toBool(staticFlag);
-
-      // Create a modal instance with per-popup options
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
-        backdrop: isStatic ? "static" : true,
-        keyboard: !isStatic,
-      });
-
-      // Look for the scrollable flag
-      const scrollFlag = headerEl?.dataset.modalScrollable;
-      const isScrollable = toBool(scrollFlag);
-
-      // Apply scrollability to the modal-dialog element
-      const dialogEl = modalEl.querySelector(".modal-dialog");
-      if (dialogEl) {
-        dialogEl.classList.toggle("modal-dialog-scrollable", isScrollable);
-      }
-
-      modal.show();
+      await loadModalFromResponse(res, { show: true });
     } catch (err) {
       console.error("Failed to load modal content:", err);
     }
   });
 
+  // ----- AJAX submit for forms inside the modal -----------------------------
+
+  on("submit", document, async (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+
+    // Only handle forms inside the global modal
+    if (!form.closest(MODAL_SELECTOR)) return;
+
+    e.preventDefault();
+
+    const { modalEl, modalContent } = getModalElements();
+    if (!modalEl || !modalContent) return;
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch(form.action || window.location.href, {
+        method: form.method || "POST",
+        body: formData,
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+
+      // Redirect / auth handling
+      if (res.status === 401 || res.redirected) {
+        await handleAuthRedirect(res);
+        return;
+      }
+
+      // Otherwise, treat it as a re-render (errors or success message)
+      await loadModalFromResponse(res, { show: false });
+    } catch (err) {
+      console.error("Modal form submit failed:", err);
+    }
+  });
+
+  // ----- Misc: sanity check & confirm-text handling -------------------------
+
   // Sanity check that the global modal host exists
   on("DOMContentLoaded", document, () => {
-    if (!select("#globalModal")) {
+    if (!select(MODAL_SELECTOR)) {
       console.error("globalModal NOT in DOM at DOMContentLoaded");
     }
   });
@@ -125,11 +202,13 @@ import { Bootstrap } from "../bootstrap.js";
   on("shown.bs.modal", document, (e) => {
     const modal = select(e.target);
     const input = select('input[data-required-text]', false, modal);
-    const btn   = select('button[id$="SubmitBtn"]', false, modal);
+    const btn = select('button[id$="SubmitBtn"]', false, modal);
     if (!input || !btn) return;
 
     const required = input.dataset.requiredText || "";
-    const check = () => { btn.disabled = (input.value.trim() !== required); };
+    const check = () => {
+      btn.disabled = input.value.trim() !== required;
+    };
 
     // Avoid duplicate listeners if the modal is opened repeatedly
     input.removeEventListener("input", input._confirmHandler || (() => {}));
@@ -140,13 +219,31 @@ import { Bootstrap } from "../bootstrap.js";
   });
 
   // Cleanup when modal is hidden
-  on("hidden.bs.modal", document, (e) => {
+  on("hidden.bs.modal", document, async (e) => {
     const modal = select(e.target);
     const input = select('input[data-required-text]', false, modal);
     if (input && input._confirmHandler) {
       input.removeEventListener("input", input._confirmHandler);
       delete input._confirmHandler;
     }
-  });
 
+    // If we have a pending URL, load that modal now and show it
+    if (pendingModalUrl) {
+      try {
+        const res = await fetch(pendingModalUrl, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+
+        if (res.status === 401 || res.redirected) {
+          await handleAuthRedirect(res);
+        } else {
+          await loadModalFromResponse(res, { show: true });
+        }
+      } catch (err) {
+        console.error("Failed to load toggled modal content:", err);
+      } finally {
+        pendingModalUrl = null;
+      }
+    }
+    });
 })();

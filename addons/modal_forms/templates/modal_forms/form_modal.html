@@ -9,7 +9,11 @@
   {% block modal_body %}
     <form
       method="{{ method|default:'post'|upper }}"
-      {% if action_url %} action="{{ action_url }}"{% endif %}
+      {% if action_url %}
+        action="{{ action_url }}"
+      {% else %}
+        action="{{ request.path }}"
+      {% endif %}
       id="{{ BASE_ID|add:'Form' }}"
       class="needs-validation"
       {% if form and form.is_multipart %} enctype="multipart/form-data"{% endif %}

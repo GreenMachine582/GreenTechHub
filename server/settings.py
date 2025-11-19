@@ -17,178 +17,192 @@ from dotenv import load_dotenv
 
 from .logging_config import LOGGING
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# ------------------ helpers ------------------
+def env_bool(name, default="false"):
+    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
 
-# Load environment variables
+def env_int(name, default):
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+# ------------------ base paths & env ------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
+DEBUG = env_bool("DJANGO_DEBUG", "1")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.50.140").split(",") if h.strip()]
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
-
-
-# Application definition
-
+# ------------------ apps ------------------
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.github',
-    'rest_framework',
-    'django_bootstrap5',
-    'bootstrap_modal_forms',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+
+    # third-party
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.github",
+    "rest_framework",
+    "django_bootstrap5",
+    "bootstrap_modal_forms",
 ]
+
+# ------------------ discover addon apps ------------------
+ADDONS_DIR = BASE_DIR / "addons"
+addon_paths = [p for p in ADDONS_DIR.iterdir() if p.is_dir() and (p / "apps.py").exists()]
+ADDONS_APPS = [f"addons.{p.name}" for p in sorted(addon_paths, key=lambda p: p.name.lower())]
+INSTALLED_APPS = ADDONS_APPS + INSTALLED_APPS
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
-ROOT_URLCONF = 'server.urls'
+ROOT_URLCONF = "server.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.template.context_processors.static',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [str(p / "templates") for p in addon_paths if (p / "templates").exists()],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.template.context_processors.static",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ] + [f"addons.{app.name}.context_processors.default_context"
+                 for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "context_processors.py").exists()
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'server.wsgi.application'
+WSGI_APPLICATION = "server.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# ------------------ database ------------------
 DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get("DATABASE_ENGINE"),
-        'NAME': os.environ.get("DATABASE_NAME"),
-        'USER': os.environ.get("DATABASE_USER"),
-        'PASSWORD': os.environ.get("DATABASE_PASSWORD"),
-        'HOST': os.environ.get("DATABASE_HOST"),
-        'PORT': os.environ.get("DATABASE_PORT"),
+    "default": {
+        "ENGINE": os.getenv("DATABASE_ENGINE"),
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT"),
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
+# ------------------ auth / passwords ------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
 USE_I18N = True
-
 USE_TZ = True
 
+# ------------------ static/media ------------------
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+STATICFILES_DIRS = [str(p / "static") for p in addon_paths if (p / "static").exists()]
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-PRIVATE_MEDIA_ROOT = BASE_DIR / 'private_media'
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+if not DEBUG:
+    STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-################
-# AllAuth      #
-################
-
+# ------------------ allauth ------------------
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-MIDDLEWARE += [
-    'allauth.account.middleware.AccountMiddleware',
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GOOGLE"),
-            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GOOGLE"),
-        },
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-        'METHOD': 'oauth2',
-        'VALIDATE_EMAIL': True,
-    },
-    'github': {
-        'APP': {
-            'client_id': os.environ.get("SOCIAL_AUTH_CLIENT_ID_GITHUB"),
-            'secret': os.environ.get("SOCIAL_AUTH_CLIENT_SECRET_GITHUB"),
-        },
-    }
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "greentechhub.com")
+SITE_NAME = os.getenv("SITE_NAME", "GreenTechHub")
+ACCOUNT_SITE_NAME = SITE_NAME
+ACCOUNT_SITE_DOMAIN = SITE_DOMAIN
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"  # <<< set http for local if you prefer
+
+ACCOUNT_LOGIN_METHODS = {"email", "username"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_SUBJECT_PREFIX = f"[{SITE_NAME}] "
+ACCOUNT_FORMS = {
+    "change_password": "addons.authentication.forms.ChangePasswordForm",
+    "reset_password": "addons.authentication.forms.ResetPasswordForm",
+    "reset_password_from_key": "addons.authentication.forms.ResetPasswordKeyForm",
+    "set_password": "addons.authentication.forms.SetPasswordForm",
 }
 
+# If behind Caddy/Cloudflare (enable when deployed)
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.getenv("SOCIAL_AUTH_CLIENT_ID_GOOGLE"),
+            "secret": os.getenv("SOCIAL_AUTH_CLIENT_SECRET_GOOGLE"),
+        },
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+        "METHOD": "oauth2",
+        "VALIDATE_EMAIL": True,
+    },
+    "github": {
+        "APP": {
+            "client_id": os.getenv("SOCIAL_AUTH_CLIENT_ID_GITHUB"),
+            "secret": os.getenv("SOCIAL_AUTH_CLIENT_SECRET_GITHUB"),
+        },
+    },
+}
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_ADAPTER = "addons.authentication.adapters.SocialAdapter"
-# ACCOUNT_SIGNUP_REDIRECT_URL = '/register/'
-LOGIN_REDIRECT_URL = '/'
-AUTH_USER_MODEL = 'authentication.User'
 
+AUTH_USER_MODEL = "authentication.User"
 
-################
-# Bootstrap    #
-################
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/login/"
+APPEND_SLASH = True
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
+# ------------------ bootstrap ------------------
 BOOTSTRAP5 = {
     "set_placeholder": False,
     "include_jquery": True,
@@ -199,64 +213,23 @@ BOOTSTRAP5 = {
     },
 }
 
-
-################
-# REST       #
-################
-
+# ------------------ DRF ------------------
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
-
-################
-# Custom       #
-################
-
-# Find all apps in the addons directory
-ADDONS_DIR = BASE_DIR / "addons"
-ADDONS_APPS = [
-    f"addons.{app.name}"
-    for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "apps.py").exists()
-]
-INSTALLED_APPS += ADDONS_APPS
-TEMPLATES[0]['OPTIONS']['context_processors'] += [
-    f"addons.{app.name}.context_processors.default_context"
-    for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "context_processors.py").exists()
-]
-
-# Additional directories for static files from each app
-STATICFILES_DIRS = [
-    ADDONS_DIR / app.name / "static"
-    for app in scandir(ADDONS_DIR) if app.is_dir() and (ADDONS_DIR / app.name / "static").exists()
-]
-
-
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": (
-            "django.contrib.staticfiles.storage.StaticFilesStorage"
-            if DEBUG
-            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
-        ),
-    },
-}
-
-if not DEBUG:  # Production collected static files
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# User session expiry
+# ------------------ sessions ------------------
 SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
 
-X_FRAME_OPTIONS = "SAMEORIGIN"
-APPEND_SLASH = True
-LOGIN_URL = '/login/'
+# ------------------ email ------------------
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = env_int("EMAIL_PORT", 587)
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", "true")  # for port 587
+EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 30)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+SERVER_EMAIL = os.getenv("SERVER_EMAIL", DEFAULT_FROM_EMAIL)

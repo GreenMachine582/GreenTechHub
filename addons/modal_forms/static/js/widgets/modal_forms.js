@@ -102,6 +102,63 @@ import { Bootstrap } from "../bootstrap.js";
     return true;
   }
 
+  async function handleJsonModalResponse(res) {
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("application/json")) {
+      return false; // not JSON, let caller handle
+    }
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      return false;
+    }
+
+    const { modalEl } = getModalElements();
+    if (!modalEl) return true;
+
+    // Close modal if requested
+    if (data.close) {
+      const modal = bootstrap.Modal.getInstance(modalEl)
+        || bootstrap.Modal.getOrCreateInstance(modalEl);
+      modal.hide();
+    }
+
+    // Optional actions
+    if (data.redirect) {
+      window.location.assign(data.redirect);
+    } else if (data.reload) {
+      window.location.reload();
+    }
+
+    return true; // JSON handled
+  }
+
+  function setGlobalLoading(isLoading) {
+    document.body.style.cursor = isLoading ? "wait" : "";
+  }
+
+  function setButtonLoading(button, isLoading) {
+    if (!button) return;
+
+    if (isLoading) {
+      if (!button.dataset.originalHtml) {
+        button.dataset.originalHtml = button.innerHTML;
+      }
+      button.disabled = true;
+      const loadingText = button.getAttribute("data-loading-text");
+      if (loadingText) {
+        button.innerHTML = loadingText;
+      }
+    } else {
+      button.disabled = false;
+      if (button.dataset.originalHtml) {
+        button.innerHTML = button.dataset.originalHtml;
+      }
+    }
+  }
+
   // ----- Open modal on .js-modal click --------------------------------------
 
   on("click", document, async (e) => {
@@ -135,7 +192,7 @@ import { Bootstrap } from "../bootstrap.js";
       return;
     }
 
-    // Fallback: fetch partial into modal then show
+    setGlobalLoading(true);
     try {
       const res = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -150,6 +207,8 @@ import { Bootstrap } from "../bootstrap.js";
       await loadModalFromResponse(res, { show: true });
     } catch (err) {
       console.error("Failed to load modal content:", err);
+    } finally {
+      setGlobalLoading(false);
     }
   });
 
@@ -168,6 +227,12 @@ import { Bootstrap } from "../bootstrap.js";
     if (!modalEl || !modalContent) return;
 
     const formData = new FormData(form);
+    const submitBtn =
+      form.querySelector('button[id$="SubmitBtn"]') ||
+      form.querySelector('button[type="submit"], input[type="submit"]');
+
+    setGlobalLoading(true);
+    setButtonLoading(submitBtn, true);
 
     try {
       const res = await fetch(form.action || window.location.href, {
@@ -182,10 +247,19 @@ import { Bootstrap } from "../bootstrap.js";
         return;
       }
 
+      // JSON semantic responses: {close: true, redirect: "...", reload: true}
+      const handledJson = await handleJsonModalResponse(res);
+      if (handledJson) {
+        return; // we've already handled close/redirect/reload
+      }
+
       // Otherwise, treat it as a re-render (errors or success message)
       await loadModalFromResponse(res, { show: false });
     } catch (err) {
       console.error("Modal form submit failed:", err);
+    } finally {
+      setButtonLoading(submitBtn, false);
+      setGlobalLoading(false);
     }
   });
 
@@ -218,7 +292,7 @@ import { Bootstrap } from "../bootstrap.js";
     check();
   });
 
-  // Cleanup when modal is hidden
+  // Cleanup + toggle-next-modal when modal is hidden
   on("hidden.bs.modal", document, async (e) => {
     const modal = select(e.target);
     const input = select('input[data-required-text]', false, modal);
@@ -229,6 +303,7 @@ import { Bootstrap } from "../bootstrap.js";
 
     // If we have a pending URL, load that modal now and show it
     if (pendingModalUrl) {
+      setGlobalLoading(true);
       try {
         const res = await fetch(pendingModalUrl, {
           headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -243,7 +318,8 @@ import { Bootstrap } from "../bootstrap.js";
         console.error("Failed to load toggled modal content:", err);
       } finally {
         pendingModalUrl = null;
+        setGlobalLoading(false);
       }
     }
-    });
+  });
 })();

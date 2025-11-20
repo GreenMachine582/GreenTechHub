@@ -132,3 +132,45 @@ class ChangePasswordModalForm(BSModalForm, _ChangePasswordForm):
                 "placeholder": _("New password"),
             })
             self.fields["password1"].help_text = ""
+
+
+class ResetPasswordModalForm(BSModalForm, _ResetPasswordForm):
+    class Meta:
+        fields = ("email",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].required = True
+        self.fields["email"].widget = forms.HiddenInput()
+
+
+class ResetPasswordForm(_ResetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "new_password1" in self.fields:
+            self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
+                "autocomplete": "new-password",
+                "placeholder": "New Password",
+            })
+        if "email" in self.fields:
+            self.fields["email"].widget = widgets.EmailInput(attrs={
+                "placeholder": "Joe.Doe@gmail.com"})
+
+
+class ResetPasswordKeyForm(_ResetPasswordKeyForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["password1"].widget = widgets.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "placeholder": "Jo4Do3!&",
+        })
+        self.fields["password1"].help_text = ""
+
+
+class SetPasswordKeyForm(_SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
+            "autocomplete": "new-password",
+            "placeholder": "New Password",
+        })

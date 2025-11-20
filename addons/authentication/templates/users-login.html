@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block main %}
-  <section class="section register d-flex flex-column align-items-center justify-content-center py-4">
+  <section class="section d-flex flex-column align-items-center justify-content-center py-4">
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
@@ -42,7 +42,11 @@
 
                 <div class="col-12">
                   <label for="password" class="form-label">Password:</label>
-                  <input type="password" name="password" id="password" class="form-control" placeholder="Jo4Do3"/>
+                  <input type="password" name="password" id="password" class="form-control" placeholder="Jo4Do3!&"/>
+                </div>
+
+                <div class="col-12 text-end">
+                  <a href="{% url 'account_reset_password' %}" class="small">Forgot your password?</a>
                 </div>
 
                 <div class="col-12">

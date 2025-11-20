@@ -21,7 +21,6 @@ from rest_framework.response import Response
 from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm, ResetPasswordModalForm
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
-from ..base.utils.mixins import AjaxOnlyMixin
 from ..modal_forms.mixins import ModalFormMixin
 
 User = get_user_model()
@@ -161,7 +160,7 @@ def remove_connection(request, pk: int):
     return redirect("users-profile")
 
 
-class DeleteAccountView(AjaxOnlyMixin, LoginRequiredView):
+class DeleteAccountView(ModalFormMixin, LoginRequiredView):
     """
     GET (AJAX): returns the confirmation modal HTML.
     POST: validates confirm_text/password, logs out, deletes account, redirects.

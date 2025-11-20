@@ -2,6 +2,8 @@
 from django.contrib import messages
 from django.http import JsonResponse
 
+from ..base.utils.mixins import AjaxOnlyMixin
+
 
 class ModalContextMixin:
     """
@@ -17,31 +19,51 @@ class ModalContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        modal_dismissible = bool(context.get("modal_dismissible", True))
-        modal_static = bool(context.get("modal_static", False))
-
-        if not modal_dismissible:
-            static_flag = 1
-        elif modal_static:
-            static_flag = 1
+        modal_dismissible = context.get("modal_dismissible")
+        if modal_dismissible is None:
+            modal_dismissible = True
         else:
-            static_flag = 0
+            modal_dismissible = bool(modal_dismissible)
 
-        context.update({
-            "static_flag": static_flag
-        })
+        modal_static = context.get("modal_static")
+        if modal_static is None:
+            modal_static = False
+        else:
+            modal_static = bool(modal_static)
 
+        # Compute static flag:
+        # - non-dismissible => forced static
+        # - otherwise use modal_static
+        static_flag = int((not modal_dismissible) or modal_static)
+
+        context.update(
+            {
+                "modal_dismissible": modal_dismissible,
+                "modal_static": modal_static,
+                "static_flag": static_flag,
+            }
+        )
         return context
 
 
-class ModalFormMixin(ModalContextMixin):
+class ModalFormMixin(AjaxOnlyMixin, ModalContextMixin):
+    """
+    Mixin for modal-based forms.
+
+    - Enforces AJAX-only POSTs via AjaxOnlyMixin (by default)
+    - Builds and sends a success message using format(**ctx)
+    - Returns JSON payload to tell the frontend what to do:
+        * {'close': True, 'reload': True} for modal_success='reload'
+        * {'close': True} for modal_success='close'
+        * {} (no special behaviour) for modal_success=None
+    """
+
+    # AJAX config: modal submits are typically POST-only
+    ajax_methods = ["POST"]
 
     success_message: str = ""
-    success_message_kwargs = None  # optional hook
-    modal_success = "reload"  # 'close', 'reload', or None
-
-    def is_ajax(self):
-        assert self.request.headers.get("x-requested-with") == "XMLHttpRequest"
+    success_message_kwargs = None  # optional extra context dict
+    modal_success = "reload"       # 'close', 'reload', or None
 
     def get_success_message_kwargs(self, form):
         """
@@ -59,8 +81,8 @@ class ModalFormMixin(ModalContextMixin):
             return ""
 
         ctx = self.get_success_message_kwargs(form)
-        # Allow per-form override
-        if self.success_message_kwargs is not None:
+
+        if self.success_message_kwargs:
             ctx.update(self.success_message_kwargs)
 
         return self.success_message.format(**ctx)
@@ -80,16 +102,21 @@ class ModalFormMixin(ModalContextMixin):
 
     def form_valid(self, form):
         """
-        Let parent chain handle the normal behaviour (redirect etc.),
-        then, if this is an AJAX modal submit, return JSON instead.
+        Normal form processing, with optional AJAX modal behaviour:
+
+        - Always run parent form_valid to perform save + redirect logic
+        - If request is AJAX, return JSON payload instead of redirect
         """
         msg = self.build_success_message(form)
         if msg:
             messages.success(self.request, msg)
 
-        self.is_ajax()
-        if payload := self.get_modal_success_payload():
-            return JsonResponse(payload)
+        response = super().form_valid(form)
 
-        # Normal form POST: keep default redirect behaviour
-        return super().form_valid(form)
+        # For modal/AJAX submission, respond with JSON instead of redirect
+        if self.is_ajax_request(self.request):
+            if payload := self.get_modal_success_payload():
+                return JsonResponse(payload)
+
+        # Non-AJAX fallback: keep the default redirect behaviour
+        return response

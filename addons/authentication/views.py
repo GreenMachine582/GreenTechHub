@@ -22,7 +22,7 @@ from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordMod
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
 from ..modal_forms.mixins import ModalFormMixin
-from ..modal_forms.views import ConfirmModalView
+from ..modal_forms.views import DeleteConfirmModalView
 
 User = get_user_model()
 
@@ -161,7 +161,7 @@ def remove_connection(request, pk: int):
     return redirect("users-profile")
 
 
-class DeleteAccountModalView(ConfirmModalView):
+class DeleteAccountModalView(DeleteConfirmModalView):
     """
     Confirm deletion of the current user's account.
     """
@@ -171,13 +171,6 @@ class DeleteAccountModalView(ConfirmModalView):
         "This will permanently delete your account, this action cannot be undone. You will be logged out immediately."
     )
     submit_label = "Delete my account"
-    submit_class = "btn-danger"
-    header_class = "bg-danger text-white"
-    icon = "fas fa-triangle-exclamation"
-
-    required_text = "DELETE"
-
-    success_url = "/"
 
     def _wouldRemoveLastSuperuser(self, u: User) -> bool:
         return u.is_superuser and User.objects.filter(is_superuser=True).exclude(pk=u.pk).count() == 0

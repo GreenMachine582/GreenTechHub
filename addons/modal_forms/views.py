@@ -87,3 +87,18 @@ class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
             return self.form_invalid(form)
 
         return super().form_valid(form)
+
+
+class DeleteConfirmModalView(ConfirmModalView):
+    """
+    Confirm deletion.
+    """
+    confirm_title = "Delete"
+    submit_label = "Delete"
+    submit_class = "btn-danger"
+    header_class = "bg-danger text-white"
+    icon = "fas fa-triangle-exclamation"
+
+    required_text = "DELETE"
+
+    success_url = "/"

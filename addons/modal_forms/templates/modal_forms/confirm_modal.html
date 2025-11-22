@@ -4,24 +4,13 @@
   {% block modal_title %}
     {{ title|default:"Confirm Action" }}
   {% endblock %}
+{% endwith %}
 
-  {% block form_fields %}
+{% with BASE_ID=form_id|default:modal_id|default:"modalForm" %}
+  {% block form_after %}
     {% if require_text %}
-      <div class="mb-3">
-        <label class="form-label" for="{{ modal_id }}_confirm_text">
-          {{ require_text_label|default:"Type to confirm" }}
-        </label>
-        <input
-          type="text"
-          id="{{ modal_id }}_confirm_text"
-          name="confirm_text"
-          class="form-control"
-          placeholder="{{ require_text_placeholder|default:require_text }}"
-          data-required-text="{{ require_text }}"
-          required
-        >
         <div class="form-text">
-          Type <code>{{ require_text }}</code> to confirm.
+          {% if require_text_help %}{{ require_text_help }}{% else %}This prevents accidental submissions.{% endif %}
         </div>
       </div>
     {% endif %}

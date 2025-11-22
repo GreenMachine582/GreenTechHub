@@ -38,24 +38,6 @@
       {% endif %}
 
       {% block form_after %}{% endblock %}
-
-      {# Optional confirm text to enable submit (for destructive actions) #}
-      {% if require_text %}
-        <div class="mb-3">
-          <label class="form-label" for="{{ BASE_ID|add:'Form' }}ConfirmInput">
-            {% if require_text_label %}{{ require_text_label }}{% else %}
-              Type <code>{{ require_text }}</code> to confirm
-            {% endif %}
-          </label>
-          <input type="text"
-                 id="{{ BASE_ID|add:'Form' }}ConfirmInput"
-                 class="form-control"
-                 data-required-text="{{ require_text }}">
-          <div class="form-text">
-            {% if require_text_help %}{{ require_text_help }}{% else %}This prevents accidental submissions.{% endif %}
-          </div>
-        </div>
-      {% endif %}
   {% endblock %}
 
   {% block modal_footer %}

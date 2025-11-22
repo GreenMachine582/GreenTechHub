@@ -1,6 +1,7 @@
 
 from django.contrib import messages
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 from ..base.utils.mixins import AjaxOnlyMixin
 
@@ -120,3 +121,18 @@ class ModalFormMixin(AjaxOnlyMixin, ModalContextMixin):
 
         # Non-AJAX fallback: keep the default redirect behaviour
         return response
+
+    def form_invalid(self, form):
+        """
+        For AJAX requests, return the modal HTML with errors instead of redirecting.
+        For normal requests, fall back to standard behaviour.
+        """
+        if self.is_ajax_request(self.request):
+            html = render_to_string(
+                self.template_name,
+                self.get_context_data(form=form),
+                request=self.request,
+            )
+            return JsonResponse({"html": html}, status=400)
+
+        return super().form_invalid(form)

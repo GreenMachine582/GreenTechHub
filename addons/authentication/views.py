@@ -22,6 +22,7 @@ from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordMod
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
 from ..modal_forms.mixins import ModalFormMixin
+from ..modal_forms.views import ConfirmModalView
 
 User = get_user_model()
 
@@ -160,16 +161,11 @@ def remove_connection(request, pk: int):
     return redirect("users-profile")
 
 
-class DeleteAccountView(ModalFormMixin, LoginRequiredView):
+class DeleteAccountModalView(ConfirmModalView):
     """
-    GET (AJAX): returns the confirmation modal HTML.
-    POST: validates confirm_text/password, logs out, deletes account, redirects.
-
-    Uses: modal_forms/confirm_modal.html
+    Confirm deletion of the current user's account.
     """
 
-    # modal config
-    confirm_template_name = "modal_forms/confirm_modal.html"
     confirm_title = "Delete Account"
     confirm_message = (
         "This will permanently delete your account, this action cannot be undone. You will be logged out immediately."
@@ -181,46 +177,29 @@ class DeleteAccountView(ModalFormMixin, LoginRequiredView):
 
     required_text = "DELETE"
 
-    success_url = "/"  # or reverse_lazy("home")
-    redirect_url = "users-profile"
+    success_url = "/"
 
     def _wouldRemoveLastSuperuser(self, u: User) -> bool:
         return u.is_superuser and User.objects.filter(is_superuser=True).exclude(pk=u.pk).count() == 0
 
-    # ---------- GET: return modal HTML (AJAX only) ----------
-    def get(self, request, *args, **kwargs):
-        context = {
-            "action_url": request.path,
-            "modal_id": "deleteAccountModal",
-            "title": self.confirm_title,
-            "message": self.confirm_message,
-            "submit_label": self.submit_label,
-            "submit_class": self.submit_class,
-            "header_class": self.header_class,
-            "icon": self.icon,
-            "require_text": self.required_text,
-        }
-        return render(request, self.confirm_template_name, context)
-
-    # ---------- POST: perform deletion ----------
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        confirm_text = (request.POST.get("confirm_text") or "").strip()
-        if confirm_text != self.required_text:
-            messages.error(request, _(f'Please type "{self.required_text}" to confirm.'))
-            return redirect("users-profile")
+    def perform_action(self, form):
+        user = self.request.user
 
         # Prevent removing last superuser
         if self._wouldRemoveLastSuperuser(user):
-            messages.error(
-                request, _("You are the last superuser. Promote another admin before deleting this account.")
+            form.add_error(
+                None,
+                _(
+                    "You are the last superuser. "
+                    "Promote another admin before deleting this account."
+                ),
             )
-            return redirect("users-profile")
-        logout(request)
+            # This will now stay in the modal and show the error
+            return
 
+        logout(self.request)
         user.delete()
-        messages.success(request, _("Your account has been deleted."))
-        return redirect(resolve_url(self.success_url))
+        messages.success(self.request, _("Your account has been deleted."))
 
 
 class ChangePasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView):

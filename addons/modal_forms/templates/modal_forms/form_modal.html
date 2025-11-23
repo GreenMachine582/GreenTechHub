@@ -31,7 +31,11 @@
         {% endfor %}
       {% endif %}
 
-      {% block form_before %}{% endblock %}
+      {% block form_before %}
+        <input type="hidden"
+               name="next"
+               value="{{ request.GET.next|default:request.get_full_path }}">
+      {% endblock %}
 
       {% if form %}
         {% bootstrap_form form alert_error_type='all' %}

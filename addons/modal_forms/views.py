@@ -5,28 +5,26 @@ from .forms import ConfirmTextModalForm as _ConfirmTextModalForm
 from .mixins import ModalFormMixin as _ModalFormMixin
 
 
-class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
+class FormModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
     """
-    Generic confirmation modal view.
+    Generic form modal view.
 
-    - Renders `modal_forms/confirm_modal.html`
-    - Uses a simple "type this text to confirm" form by default
+    - Renders `modal_forms/form_modal.html`
     - Expects subclasses to implement `perform_action(form)`
     """
 
-    template_name = "modal_forms/confirm_modal.html"
-    form_class = _ConfirmTextModalForm
+    template_name = "modal_forms/form_modal.html"
 
     # Modal defaults – override in subclasses
-    confirm_title = "Confirm Action"
-    confirm_message = ""
-    submit_label = "Confirm"
+    modal_title = ""
+    modal_message = ""
+    submit_label = ""
     submit_class = "btn-primary"
-    header_class = "bg-warning text-dark"
-    icon = ""
+    header_class = "bg-primary text-light"
+    modal_icon = ""
 
     required_text = None        # e.g. "DELETE", or None for no gating text
-    modal_id = "confirmModal"   # override per use-case
+    modal_id = "formModal"      # override per use-case
     success_url = "/"           # where to go in non-AJAX fallback
 
     # ----- hooks for subclasses -----
@@ -57,8 +55,7 @@ class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
         kwargs = super().get_form_kwargs()
         kwargs.pop("request", None)
 
-        required_text = self.get_required_text()
-        if required_text is not None:
+        if required_text := self.get_required_text() is not None:
             kwargs["required_text"] = required_text
         return kwargs
 
@@ -68,12 +65,12 @@ class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
             {
                 "action_url": self.request.path,
                 "modal_id": self.get_modal_id(),
-                "title": self.confirm_title,
-                "message": self.confirm_message,
+                "title": self.modal_title,
+                "message": self.modal_message,
                 "submit_label": self.submit_label,
                 "submit_class": self.submit_class,
                 "header_class": self.header_class,
-                "icon": self.icon,
+                "icon": self.modal_icon,
                 "require_text": self.get_required_text(),
             }
         )
@@ -91,6 +88,20 @@ class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
             return self.form_invalid(form)
 
         return super().form_valid(form)
+
+
+class ConfirmModalView(FormModalView):
+    """
+    Generic confirmation modal view.
+
+    - Renders `modal_forms/confirm_modal.html`
+    - Uses a simple "type this text to confirm" form by default
+    - Expects subclasses to implement `perform_action(form)`
+    """
+
+    template_name = "modal_forms/confirm_modal.html"
+    form_class = _ConfirmTextModalForm
+    modal_id = "confirmModal"
 
 
 class DeleteConfirmModalView(ConfirmModalView):

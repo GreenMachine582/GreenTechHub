@@ -34,7 +34,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = env_bool("DJANGO_DEBUG", "1")
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,192.168.50.140").split(",") if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]
 
 # ------------------ apps ------------------
 INSTALLED_APPS = [
@@ -153,11 +153,15 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SITE_DOMAIN = os.getenv("SITE_DOMAIN", "greentechhub.com")
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "green-tech-hub.com")
 SITE_NAME = os.getenv("SITE_NAME", "GreenTechHub")
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{SITE_DOMAIN}",
+    f"https://www.{SITE_DOMAIN}",
+]
 ACCOUNT_SITE_NAME = SITE_NAME
 ACCOUNT_SITE_DOMAIN = SITE_DOMAIN
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"  # <<< set http for local if you prefer
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
 
 ACCOUNT_LOGIN_METHODS = {"email", "username"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
@@ -170,9 +174,9 @@ ACCOUNT_FORMS = {
     "set_password": "addons.authentication.forms.SetPasswordForm",
 }
 
-# If behind Caddy/Cloudflare (enable when deployed)
-# USE_X_FORWARDED_HOST = True
-# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if os.getenv("ENVIRONMENT", "production") == "production":
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

@@ -1,4 +1,4 @@
-name: Server Deployment
+name: Production Deployment
 
 on:
   push:
@@ -15,67 +15,74 @@ jobs:
 #    uses: ./.github/workflows/general_tests.yml
 
   deploy:
-    name: Deploy to EC2
+    name: Deploy to Production
 #    needs: general-tests
     runs-on: ubuntu-latest
     environment: Production
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Configure SSH and Deploy
+      - name: Setup SSH key and cloudflared
         env:
-          EC2_PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          SERVER_PRIVATE_KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
-          # Ensure required environment variables are set
-          if [[ -z "$EC2_PRIVATE_KEY" || -z "$EC2_HOST" || -z "$EC2_USERNAME" ]]; then
-            echo "❌ Missing EC2 secrets. Ensure EC2_PRIVATE_KEY, EC2_HOST, and EC2_USERNAME are set."
+          set -e
+
+          if [ -z "$SERVER_HOST" ] || [ -z "$SERVER_USERNAME" ]; then
+            echo "❌ Missing SSH credentials. Ensure SERVER_HOST and SERVER_USERNAME are set."
             exit 1
           fi
+
+          echo "🔑 Writing SSH key"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Store as an OpenSSH key file (NOT .ppk)
+          echo "$SERVER_PRIVATE_KEY" > ~/.ssh/github_deploy_key
+          chmod 600 ~/.ssh/github_deploy_key
+
+          # Basic sanity check
+          if ! grep -q "PRIVATE KEY" ~/.ssh/github_deploy_key; then
+            echo "❌ SSH key does not look like a private key!"
+            exit 1
+          fi
+
+          echo "🌐 Installing cloudflared"
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cloudflared --version || { echo "❌ cloudflared failed to install"; exit 1; }
           
-          # Set up SSH key and agent
-          mkdir -p ~/.ssh/
-          echo "$EC2_PRIVATE_KEY" > ~/.ssh/github
-          chmod 600 ~/.ssh/github
+          echo "CF_ACCESS_CLIENT_ID=$CF_ACCESS_CLIENT_ID" >> $GITHUB_ENV
+          echo "CF_ACCESS_CLIENT_SECRET=$CF_ACCESS_CLIENT_SECRET" >> $GITHUB_ENV
+
+          echo "📝 Writing SSH config"
+          cat > ~/.ssh/config <<EOF
+          Host homelab
+            HostName $SERVER_HOST
+            User $SERVER_USERNAME
+            IdentityFile ~/.ssh/github_deploy_key
+            StrictHostKeyChecking no
+            UserKnownHostsFile=/dev/null
           
-          # Add EC2 host to known hosts (avoids interactive prompt)
-          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
-          
-          # Test SSH connection
-          ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST "echo '✅ SSH Connection Successful'"
-      - name: Run Deployment Commands
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-        run: |
-          ssh -i ~/.ssh/github $EC2_USERNAME@$EC2_HOST << 'EOF'
-            set -e  # Exit immediately if any command fails
-          
-            echo "🚀 Starting deployment on EC2..."
-          
-            # Navigate to project directory
-            cd ~/GreenTechHub
-          
-            # Ensure the latest code is pulled
-            git pull origin main
-          
-            # Activate virtual environment and install dependencies
-            source venv/bin/activate
-            pip install -r requirements.txt
-            echo "📦 Requirements installed"
-          
-            # Collect static files
-            python server.py collectstatic --noinput
-            echo "🗂️ Static files collected"
-          
-            # Restart the service
-            sudo systemctl daemon-reload
-            sudo systemctl restart greentechhub.service
-          
-            # Verify service status
-            sudo systemctl status greentechhub.service --no-pager
-            echo "✅ Deployment completed successfully"
+            # Use cloudflared to reach SSH over the Cloudflare Tunnel
+            ProxyCommand cloudflared access ssh --hostname $SERVER_HOST
           EOF
+
+          chmod 600 ~/.ssh/config
+
+      - name: Test SSH connection via Cloudflare Tunnel
+        run: |
+          echo "🔎 Testing SSH connection to homelab via Cloudflare Tunnel..."
+          ssh -v homelab "echo '✅ SSH connected via Cloudflare Tunnel on $(hostname)'"
+
+      - name: Run deployment script
+        run: |
+          echo "🚀 Kicking off deploy_homelab.sh in background..."
+          ssh homelab "nohup sudo /root/homelab/python_projects/deploy_greentechhub.sh >/root/homelab/python_projects/deploy_greentechhub.log 2>&1 &"
+          echo "✅ Deployment started (check /root/homelab/python_projects/deploy_greentechhub.log on the server)"

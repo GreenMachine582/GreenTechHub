@@ -3,8 +3,7 @@ from allauth.socialaccount.models import SocialAccount, SocialToken
 from bootstrap_modal_forms.generic import BSModalFormView
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (authenticate, login, logout, get_user_model, update_session_auth_hash,
-                                 REDIRECT_FIELD_NAME)
+from django.contrib.auth import authenticate, login, logout, get_user_model, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, resolve_url, get_object_or_404
@@ -207,10 +206,6 @@ class ChangePasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormVie
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         return kwargs
-
-    def get_success_url(self):
-        nxt = self.request.GET.get("next") or self.request.POST.get("next")
-        return nxt or super().get_success_url()
 
     def form_valid(self, form):
         form.save()

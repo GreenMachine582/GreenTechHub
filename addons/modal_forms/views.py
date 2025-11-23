@@ -31,6 +31,10 @@ class ConfirmModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
 
     # ----- hooks for subclasses -----
 
+    def get_success_url(self):
+        nxt = self.request.GET.get("next") or self.request.POST.get("next")
+        return nxt or super().get_success_url()
+
     def get_required_text(self):
         return self.required_text
 
@@ -100,5 +104,3 @@ class DeleteConfirmModalView(ConfirmModalView):
     icon = "fas fa-triangle-exclamation"
 
     required_text = "DELETE"
-
-    success_url = "/"

@@ -214,7 +214,6 @@ class ChangePasswordModalView(FormModalView):
 
 
 class ResetPasswordModalView(FormModalView):
-    template_name = "modal_forms/form_modal.html"
     form_class = ResetPasswordModalForm
     success_message = "Password reset email sent to {email}."
     modal_title = _("Send Password Reset Email")
@@ -222,6 +221,9 @@ class ResetPasswordModalView(FormModalView):
     submit_label = _("Send email")
     extra_context = {
         "action_url": reverse_lazy("password-reset-modal"),
+        "message_html": _(
+            "We will email a password reset link to <strong>{email}</strong>."
+        ),
     }
 
     def get_form_kwargs(self):
@@ -230,12 +232,17 @@ class ResetPasswordModalView(FormModalView):
         kwargs["initial"]["email"] = self.request.user.email
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        email = self.request.user.email
+        ctx["message_html"] = ctx["message_html"].format(email=escape(email))
+        return ctx
+
     def perform_action(self, form):
         form.save(self.request)
 
 
 class SetPasswordModalView(FormModalView):
-    template_name = "modal_forms/form_modal.html"
     form_class = SetPasswordModalForm
     success_message = "Password set successfully."
     modal_title = _("Set Password")
@@ -253,133 +260,3 @@ class SetPasswordModalView(FormModalView):
 
     def perform_action(self, form):
         form.save()
-
-
-# class SendResetLinkView(LoginRequiredView, AjaxOnlyMixin):
-#     """
-#     Sends a password reset email to the logged-in user's email using allauth.
-#     """
-#     template_name = "modal_forms/confirm_modal.html"
-#     success_url = "users-profile"
-#
-#     def get(self, request):
-#         ctx = {
-#             "title": "Send reset link",
-#             "message": f"Send a password reset email to {request.user.email}?",
-#             "action_url": request.path,
-#             "modal_id": "sendResetLinkModal",
-#             "submit_label": "Send email",
-#             "submit_class": "btn-secondary",
-#             "header_class": "bg-secondary text-white",
-#             "icon": "fas fa-envelope",
-#             # optional require_text: e.g., "SEND"
-#             # "require_text": "SEND",
-#         }
-#         return render(request, self.template_name, ctx)
-#
-#     def post(self, request):
-#         email = (request.user.email or "").strip()
-#         if not email:
-#             messages.error(request, "Your account has no email address.")
-#             return redirect(self.success_url)
-#
-#         form = ResetPasswordForm(data={"email": email})
-#         if form.is_valid():
-#             form.save(request=request)  # allauth sends the email
-#             messages.success(request, "Password reset email sent.")
-#             return redirect(self.success_url)
-#
-#         messages.error(request, "Could not send reset email.")
-#         return redirect(self.success_url)
-
-
-class PasswordResetSelfView(LoginRequiredView):
-    """
-    GET (AJAX): returns confirm modal asking to send a reset email to the user’s email.
-    POST: sends the reset email (uses allauth ResetPasswordForm under the hood) and redirects.
-    """
-
-    confirm_template_name = "modal_forms/confirm_modal.html"
-    header_class = "bg-primary text-white"
-    icon = "fas fa-envelope"
-    success_url = "users-profile"  # name of your profile view
-
-    def get(self, request, *args, **kwargs):
-        # Only deliver modal HTML to AJAX to embed in #globalModal
-        if request.headers.get("X-Requested-With") != "XMLHttpRequest":
-            # Optional: you can fall back to the allauth page if desired
-            return redirect("account_reset_password")
-
-        email = (request.user.email or "").strip()
-        title = _("Send Password Reset Email")
-        if not email:
-            message = _(
-                "No email is set on your account. Please add an email address to receive a reset link."
-            )
-            # Render a modal with no confirm button (Close only)
-            ctx = {
-                "modal_id": "passwordResetModal",
-                "action_url": "",  # no post
-                "title": title,
-                "message": message,
-                "submit_label": "",  # hide confirm
-                "submit_class": "btn-primary",
-                "header_class": self.header_class,
-                "icon": self.icon,
-            }
-            return render(request, self.confirm_template_name, ctx)
-
-        message = _(
-            "We will email a password reset link to <strong>{email}</strong>."
-        ).format(email=email)
-
-        ctx = {
-            "modal_id": "passwordResetModal",
-            "action_url": request.path,  # POST back here
-            "title": title,
-            "message_html": message,
-            "submit_label": _("Send email"),
-            "submit_class": "btn-primary",
-            "header_class": self.header_class,
-            "icon": self.icon,
-        }
-        return render(request, self.confirm_template_name, ctx)
-
-    def post(self, request, *args, **kwargs):
-        email = (request.user.email or "").strip()
-        if not email:
-            messages.error(request, _("Add an email address to your account first."))
-            return redirect(self.success_url)
-
-        # Use allauth's form so adapters/signals/templates are respected
-        form = ResetPasswordForm(data={"email": email})
-        if form.is_valid():
-            form.save(request=request)  # sends the email
-            if email == request.user.email:
-                msg_text = "Password reset email has been sent to {email}."
-            else:
-                msg_text = "If an account exists for {email}, a password reset email has been sent."
-            messages.success(
-                request,
-                _(msg_text).format(email=email),
-            )
-        else:
-            # Normally shouldn't happen for a logged-in user's email, but be graceful
-            messages.error(request, _("Could not send a reset email right now. Please try again later."))
-
-        return redirect(resolve_url(self.success_url))
-
-
-class PasswordResetFromKeyDoneView(_PasswordResetFromKeyDoneView):
-    """
-    Redirects to login after password reset with a success notification.
-    """
-
-    def dispatch(self, request, *args, **kwargs):
-        # Add your success message
-        messages.success(
-            request,
-            "Your password has been reset successfully. You can now sign in.",
-        )
-        # Redirect to login page
-        return redirect(reverse("login"))

@@ -55,7 +55,7 @@ class FormModalView(_ModalFormMixin, LoginRequiredView, BSModalFormView):
         kwargs = super().get_form_kwargs()
         kwargs.pop("request", None)
 
-        if required_text := self.get_required_text() is not None:
+        if (required_text := self.get_required_text()) is not None:
             kwargs["required_text"] = required_text
         return kwargs
 

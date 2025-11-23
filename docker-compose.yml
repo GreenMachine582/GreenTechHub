@@ -26,6 +26,10 @@ services:
       - .env
     networks:
       - greentechhub_net
+    volumes:
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+      - ./private_media:/app/private_media
 
 networks:
   greentechhub_net:

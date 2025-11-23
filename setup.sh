@@ -97,6 +97,17 @@ INFO "Bringing up containers..."
 $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" up -d --remove-orphans
 
 ###################################
+# Django migrate                  #
+###################################
+
+INFO "Applying database migrations inside greentechhub container..."
+if $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" exec -T greentechhub python server.py migrate --noinput; then
+  OK "Database migrations applied."
+else
+  WARN "Migration failed. Check the greentechhub container logs."
+fi
+
+###################################
 # Django collectstatic            #
 ###################################
 

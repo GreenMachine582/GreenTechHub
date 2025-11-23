@@ -71,7 +71,7 @@ fi
 ###################################
 
 INFO "Ensuring staticfiles and media directories exist..."
-mkdir -p "$PROJECT_ROOT/staticfiles" "$PROJECT_ROOT/media"
+mkdir -p "$PROJECT_ROOT/staticfiles" "$PROJECT_ROOT/media" "$PROJECT_ROOT/private_media"
 OK "Static and media directories ready."
 
 ###################################

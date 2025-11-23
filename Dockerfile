@@ -1,4 +1,4 @@
-FROM pybase:3.14
+FROM pybase:3.14-slim
 
 # Prevents Python from writing .pyc files and buffering stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -19,11 +19,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files
 COPY . .
 
-# Expose port
 EXPOSE 8000
-
-# Default command
 CMD ["gunicorn", "server.wsgi:application", "--bind", "0.0.0.0:8000"]

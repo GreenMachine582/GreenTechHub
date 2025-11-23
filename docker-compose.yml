@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:16
     container_name: greentechhub_db
+    restart: unless-stopped
     ports:
       - "5431:5432"  # host:container
     env_file:
@@ -14,9 +15,9 @@ services:
   greentechhub:
     build: .
     container_name: greentechhub
-    command: python server.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
+    restart: unless-stopped
+#    volumes:
+#      - .:/app
     ports:
       - "8000:8000"
     depends_on:

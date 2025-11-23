@@ -103,18 +103,15 @@ class UserRegistrationForm(forms.ModelForm):
 
 class SetPasswordModalForm(BSModalForm, _SetPasswordForm):
     class Meta:
-        fields = ("new_password1", "new_password2")
+        fields = ("password1", "password2")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["new_password1"].widget = widgets.PasswordInput(attrs={
+        self.fields["password1"].widget = widgets.PasswordInput(attrs={
             "autocomplete": "new-password",
             "placeholder": _("Jo4Do3!&"),
         })
-        self.fields["new_password1"].help_text = (
-            self.fields["new_password1"].help_text
-            or password_validation.password_validators_help_text_html()
-        )
+        self.fields["password1"].help_text = ""
 
 class ChangePasswordModalForm(BSModalForm, _ChangePasswordForm):
     class Meta:

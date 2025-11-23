@@ -20,8 +20,7 @@ from rest_framework.response import Response
 from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm, ResetPasswordModalForm
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
-from ..modal_forms.mixins import ModalFormMixin
-from ..modal_forms.views import DeleteConfirmModalView
+from ..modal_forms.views import FormModalView, DeleteConfirmModalView
 
 User = get_user_model()
 
@@ -165,11 +164,11 @@ class DeleteAccountModalView(DeleteConfirmModalView):
     Confirm deletion of the current user's account.
     """
 
-    confirm_title = "Delete Account"
-    confirm_message = (
+    modal_title = _("Delete Account")
+    modal_message = (
         "This will permanently delete your account, this action cannot be undone. You will be logged out immediately."
     )
-    submit_label = "Delete my account"
+    submit_label = _("Delete account")
 
     def _wouldRemoveLastSuperuser(self, u: User) -> bool:
         return u.is_superuser and User.objects.filter(is_superuser=True).exclude(pk=u.pk).count() == 0
@@ -194,10 +193,13 @@ class DeleteAccountModalView(DeleteConfirmModalView):
         messages.success(self.request, _("Your account has been deleted."))
 
 
-class ChangePasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView):
+class ChangePasswordModalView(FormModalView):
     template_name = "account/modals/password_change.html"
     form_class = ChangePasswordModalForm
     success_message = "Password changed successfully."
+    modal_title = _("Change Password")
+    modal_icon = "fas fa-key"
+    submit_label = _("Change password")
     extra_context = {
         "action_url": reverse_lazy("password-change-modal"),
     }
@@ -207,15 +209,17 @@ class ChangePasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormVie
         kwargs["user"] = self.request.user
         return kwargs
 
-    def form_valid(self, form):
+    def perform_action(self, form):
         form.save()
-        return super().form_valid(form)
 
 
-class ResetPasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView):
-    template_name = "account/modals/password_reset.html"
+class ResetPasswordModalView(FormModalView):
+    template_name = "modal_forms/form_modal.html"
     form_class = ResetPasswordModalForm
     success_message = "Password reset email sent to {email}."
+    modal_title = _("Send Password Reset Email")
+    modal_icon = "fas fa-envelope"
+    submit_label = _("Send email")
     extra_context = {
         "action_url": reverse_lazy("password-reset-modal"),
     }
@@ -226,6 +230,26 @@ class ResetPasswordModalView(ModalFormMixin, LoginRequiredMixin, BSModalFormView
         kwargs["initial"]["email"] = self.request.user.email
         return kwargs
 
-    def form_valid(self, form):
+    def perform_action(self, form):
         form.save(self.request)
-        return super().form_valid(form)
+
+
+class SetPasswordModalView(FormModalView):
+    template_name = "modal_forms/form_modal.html"
+    form_class = SetPasswordModalForm
+    success_message = "Password set successfully."
+    modal_title = _("Set Password")
+    modal_icon = "fas fa-key"
+    submit_label = _("Set password")
+
+    extra_context = {
+        "action_url": reverse_lazy("password-set-modal"),
+    }
+
+    def get_form_kwargs(self):
+        kw = super().get_form_kwargs()
+        kw["user"] = self.request.user
+        return kw
+
+    def perform_action(self, form):
+        form.save()

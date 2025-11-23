@@ -84,5 +84,5 @@ jobs:
       - name: Run deployment script
         run: |
           echo "🚀 Kicking off deploy_greentechhub.sh in background..."
-          ssh homelab "sudo bash -c 'nohup /root/homelab/python_projects/deploy_greentechhub.sh >/dev/null 2>&1 &"
+          ssh homelab "sudo /root/homelab/python_projects/deploy_greentechhub.sh >/root/homelab/python_projects/deploy_greentechhub.log 2>&1 &"
           echo '✅ Deployment started (script handles its own logs)'

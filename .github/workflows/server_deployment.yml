@@ -83,6 +83,6 @@ jobs:
 
       - name: Run deployment script
         run: |
-          echo "🚀 Kicking off deploy_homelab.sh in background..."
-          ssh homelab "nohup sudo /root/homelab/python_projects/deploy_greentechhub.sh >/root/homelab/python_projects/deploy_greentechhub.log 2>&1 &"
-          echo "✅ Deployment started (check /root/homelab/python_projects/deploy_greentechhub.log on the server)"
+          echo "🚀 Kicking off deploy_greentechhub.sh in background..."
+          ssh homelab "sudo bash -c 'nohup /root/homelab/python_projects/deploy_greentechhub.sh > /root/homelab/python_projects/deploy_greentechhub.log 2>&1 &'"
+          echo '✅ Deployment started (check /root/homelab/python_projects/deploy_greentechhub.log on the server)'

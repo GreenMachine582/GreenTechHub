@@ -5,12 +5,14 @@ from allauth.account.forms import (ChangePasswordForm as _ChangePasswordForm, Re
                                    ResetPasswordKeyForm as _ResetPasswordKeyForm, SetPasswordForm as _SetPasswordForm)
 from bootstrap_modal_forms.forms import BSModalForm
 from django import forms
-from django.contrib.auth import password_validation
-from django.contrib.auth.models import User, UnicodeUsernameValidator
+from django.contrib.auth import password_validation, get_user_model
+from django.contrib.auth.models import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from ..base import widgets
+
+User = get_user_model()
 
 
 def validate_password_strength(value):

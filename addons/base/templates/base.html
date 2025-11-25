@@ -90,6 +90,12 @@
                   <span>Login</span>
                 </a>
               </li>
+              <li>
+                <a class="dropdown-item d-flex align-items-center" href="{% url 'register' %}">
+                  <i class="fas fa-user-plus"></i>
+                  <span>Register</span>
+                </a>
+              </li>
             {% else %}
               <li>
                 <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">

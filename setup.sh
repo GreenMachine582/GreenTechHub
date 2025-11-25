@@ -67,6 +67,14 @@ if [[ ! -f "$DOCKER_COMPOSE_FILE" ]]; then
 fi
 
 ###################################
+# Prepare static & media dirs     #
+###################################
+
+INFO "Ensuring staticfiles and media directories exist..."
+mkdir -p "$PROJECT_ROOT/staticfiles" "$PROJECT_ROOT/media" "$PROJECT_ROOT/private_media"
+OK "Static and media directories ready."
+
+###################################
 # Pull latest code                #
 ###################################
 
@@ -87,6 +95,28 @@ $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" build
 
 INFO "Bringing up containers..."
 $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" up -d --remove-orphans
+
+###################################
+# Django migrate                  #
+###################################
+
+INFO "Applying database migrations inside greentechhub container..."
+if $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" exec -T greentechhub python server.py migrate --noinput; then
+  OK "Database migrations applied."
+else
+  WARN "Migration failed. Check the greentechhub container logs."
+fi
+
+###################################
+# Django collectstatic            #
+###################################
+
+INFO "Collecting static files inside greentechhub container..."
+if $DOCKER_COMPOSE_CMD -f "$DOCKER_COMPOSE_FILE" exec -T greentechhub python server.py collectstatic --noinput; then
+  OK "Static files collected successfully."
+else
+  WARN "collectstatic failed. Check the greentechhub container logs."
+fi
 
 ###################################
 # Post-deploy info                #

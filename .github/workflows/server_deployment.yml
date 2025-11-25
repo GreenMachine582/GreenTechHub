@@ -28,7 +28,6 @@ jobs:
         env:
           SERVER_PRIVATE_KEY: ${{ secrets.SERVER_PRIVATE_KEY }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
@@ -84,6 +83,6 @@ jobs:
 
       - name: Run deployment script
         run: |
-          echo "🚀 Kicking off deploy_homelab.sh in background..."
-          ssh homelab "nohup sudo /root/homelab/python_projects/deploy_greentechhub.sh >/root/homelab/python_projects/deploy_greentechhub.log 2>&1 &"
-          echo "✅ Deployment started (check /root/homelab/python_projects/deploy_greentechhub.log on the server)"
+          echo "🚀 Kicking off deploy_greentechhub.sh in background..."
+          ssh homelab "sudo /root/homelab/python_projects/deploy_greentechhub.sh"
+          echo '✅ Deployment started (script handles its own logs)'

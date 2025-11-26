@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load account allauth %}
+
+{% block meta %}
+  {% with page_title="Confirm Email Address"|add:" - "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block main %}
+<section class="section d-flex flex-column align-items-center justify-content-center py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+        <div class="d-flex justify-content-center py-4">
+          <a href="/" class="logo d-flex align-items-center w-auto text-decoration-none">
+            <img src="{% static 'img/logo.png' %}" alt="GreenTechHub logo" />
+            <span class="d-none d-lg-block ms-2">{{ site_name }}</span>
+          </a>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+
+            <div class="pt-4 pb-2">
+              <h5 class="card-title text-center pb-0 fs-4">{% trans "Confirm Email Address" %}</h5>
+
+              {% if confirmation %}
+                {% user_display confirmation.email_address.user as user_display %}
+                {% if can_confirm %}
+                    <p class="text-center small">{% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an email address for user {{ user_display }}.{% endblocktrans %}</p>
+                {% else %}
+                    <p class="text-center small">{% blocktrans %}Unable to confirm {{ email }} because it is already confirmed by a different account.{% endblocktrans %}</p>
+                {% endif %}
+              {% else %}
+                  {% url 'account_email' as email_url %}
+                  <p class="text-center small">{% blocktrans %}This email confirmation link expired or is invalid. Please <a href="{{ email_url }}">issue a new email confirmation request</a>.{% endblocktrans %}</p>
+              {% endif %}
+            </div>
+
+            <div class="row mt-3 g-2">
+              <div class="col-6 d-grid">
+                <a href="/" class="btn btn-outline-secondary">
+                  {% trans "Back to Home" %}
+                </a>
+              </div>
+
+              {% if confirmation and can_confirm %}
+                <div class="col-6 d-grid">
+                  <form method="post"
+                        action="{% url 'account_confirm_email' confirmation.key %}"
+                        class="d-grid">
+                    {% csrf_token %}
+                    {{ redirect_field }}
+                    <button type="submit" class="btn btn-primary">
+                      {% trans "Confirm" %}
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

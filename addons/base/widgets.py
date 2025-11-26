@@ -1,4 +1,4 @@
-from django.forms import widgets, CheckboxInput
+from django.forms.widgets import *
 
 
 class BootstrapWidgetMixin:
@@ -53,32 +53,12 @@ class BootstrapInputMixin(BootstrapWidgetMixin):
         return context
 
 
-class TextInput(BootstrapInputMixin, widgets.TextInput):
+class UsernameInput(BootstrapInputMixin, TextInput):
     """Bootstrap-styled Text Input."""
     template_name = "widgets/bootstrap_input.html"
 
 
-class NumberInput(BootstrapInputMixin, widgets.NumberInput):
-    """Bootstrap-styled Number Input."""
-    template_name = "widgets/bootstrap_input.html"
-
-
-class EmailInput(BootstrapInputMixin, widgets.EmailInput):
-    """Bootstrap-styled Email Input."""
-    template_name = "widgets/bootstrap_input.html"
-
-
-class URLInput(BootstrapInputMixin, widgets.URLInput):
-    """Bootstrap-styled URL Input."""
-    template_name = "widgets/bootstrap_input.html"
-
-
-class NormalPasswordInput(BootstrapInputMixin, widgets.PasswordInput):
-    """Bootstrap-styled URL Input."""
-    template_name = "widgets/bootstrap_input.html"
-
-
-class PasswordInput(BootstrapInputMixin, widgets.PasswordInput):
+class CustomPasswordInput(BootstrapInputMixin, PasswordInput):
     """
     Bootstrap 5 styled password input with optional visibility toggle.
     """

@@ -168,6 +168,7 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_SUBJECT_PREFIX = f"[{SITE_NAME}] "
 ACCOUNT_FORMS = {
+    "signup": "addons.authentication.forms.SignupForm",
     "change_password": "addons.authentication.forms.ChangePasswordForm",
     "reset_password": "addons.authentication.forms.ResetPasswordForm",
     "reset_password_from_key": "addons.authentication.forms.ResetPasswordKeyForm",

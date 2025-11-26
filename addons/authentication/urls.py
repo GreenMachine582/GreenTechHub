@@ -9,7 +9,6 @@ from . import views
 
 urlpatterns = [
     path('authentication/', include('django.contrib.auth.urls')),
-    path('register/', views.UserRegistrationFormView.as_view(), name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path("account/delete/", views.DeleteAccountModalView.as_view(), name="users-delete-account"),

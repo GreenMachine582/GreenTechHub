@@ -34,6 +34,8 @@
                     class="row g-3 needs-validation" novalidate>
                 {% csrf_token %}
 
+                {% bootstrap_form_errors form alert_error_type='fields' %}
+
                 <div class="mb-3 col-12">
                   <label class="form-label">First & Last Name</label>
                   <div class="row">
@@ -68,7 +70,11 @@
                   {% endif %}
                 </div>
 
-                {% bootstrap_form form exclude='first_name,last_name' alert_error_type='fields' %}
+                {% for field in form %}
+                  {% if field.name not in "first_name last_name" %}
+                    {% bootstrap_field field %}
+                  {% endif %}
+                {% endfor %}
 
                 <div class="col-12">
                   <button class="btn btn-primary w-100" type="submit">{% trans "Create Account" %}</button>

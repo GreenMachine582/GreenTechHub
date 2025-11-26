@@ -39,7 +39,7 @@
     {% if user.is_authenticated == False %}
       <li class="nav-heading">Admin</li>
       <li class="nav-item">
-        <a class="nav-link {% if site_path == '/register/' %}active{% else %}collapsed{% endif %}" href="{% url 'register' %}">
+        <a class="nav-link {% if site_path == '/accounts/signup/' %}active{% else %}collapsed{% endif %}" href="{% url 'account_signup' %}">
           <i class="fas fa-user-plus"></i>
           <span>Register</span>
         </a>

@@ -5,47 +5,23 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, redirect, resolve_url, get_object_or_404
+# from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.html import escape
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import UserRegistrationForm, SetPasswordModalForm, ChangePasswordModalForm, ResetPasswordModalForm
+from .forms import SetPasswordModalForm, ChangePasswordModalForm, ResetPasswordModalForm
 from .models import GroupProfile
 from ..base.views import LoginRequiredView
 from ..modal_forms.views import FormModalView, DeleteConfirmModalView
 
 User = get_user_model()
-
-class UserRegistrationFormView(FormView):
-    form_class = UserRegistrationForm
-    template_name = "users-register.html"
-    success_url = reverse_lazy("home")
-
-    def form_valid(self, form):
-        new_user = form.save()
-        login(self.request, new_user)  # Sign user in after registration
-        messages.success(self.request, "Your account has been created successfully!")
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        error_message = "<p>Failed to register. Please correct the errors below: </p><ul>"
-        for field, errors in form.errors.items():
-            for error in errors:
-                # Label the error with the field name if available
-                field_name = form.fields[field].label if field in form.fields else "Error"
-                error_message += f"<li><strong>{escape(field_name)}:</strong> {escape(error)}</li>"
-        error_message += "</ul>"
-        form.errors.clear()
-        messages.error(self.request, error_message)
-        return super().form_invalid(form)
 
 
 def user_login(request):

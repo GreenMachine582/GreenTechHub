@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 socialaccount %}
+{% load i18n static %}
+
+{% block meta %}
+  {% with page_title="Login"|add:" - "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block main %}
+  <section class="section d-flex flex-column align-items-center justify-content-center py-4">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+          <div class="d-flex justify-content-center py-4">
+            <a href="/" class="logo d-flex align-items-center w-auto text-decoration-none">
+              <img src="{% static 'img/logo.png' %}" alt="GreenTechHub logo" />
+              <span class="d-none d-lg-block ms-2">{{ site_name }}</span>
+            </a>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-body">
+
+              <div class="pt-4 pb-2">
+                <h5 class="card-title text-center pb-0 fs-4">{% trans "Login to Your Account" %}</h5>
+                <p class="text-center small">E{% trans "nter your username & password to login." %}</p>
+              </div>
+
+              <form method="post"
+                    action="{% if action_url %}{{ action_url }}{% url 'account_login' %}{% endif %}"
+                    class="row g-3 needs-validation" novalidate>
+                {% csrf_token %}
+
+                {% bootstrap_form form alert_error_type='fields' %}
+
+                <div class="col-12">
+                  <button class="btn btn-primary w-100" type="submit">{% trans "Login" %}</button>
+                </div>
+                <div class="col-12">
+                  <p class="small mb-0">Don't have account? <a href="{% url 'account_signup' %}">Create an account</a></p>
+                </div>
+              </form>
+
+              <div class="text-divider">or</div>
+              <div class="mt-4">
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'google' %}" class="btn btn-social w-100 google" title="Login with Google">
+                    <i class="fab fa-google"></i>
+                    <span class="btn-text">Google</span>
+                  </a>
+                </div>
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'github' %}" class="btn btn-social w-100 github" title="Login with Github">
+                    <i class="fab fa-github"></i>
+                    <span class="btn-text">Github</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

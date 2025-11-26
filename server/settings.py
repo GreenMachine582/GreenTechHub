@@ -227,10 +227,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
-# ------------------ sessions ------------------
-SESSION_REMEMBER_ME_SECS = 60 * 60 * 24 * 30  # 30 days
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
-
 # ------------------ email ------------------
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")

@@ -1,15 +1,11 @@
 
 from allauth.socialaccount.models import SocialAccount, SocialToken
-from bootstrap_modal_forms.generic import BSModalFormView
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, get_user_model, REDIRECT_FIELD_NAME
+from django.contrib.auth import logout, get_user_model
 from django.contrib.auth.decorators import login_required
-# from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.html import escape
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
@@ -24,36 +20,10 @@ from ..modal_forms.views import FormModalView, DeleteConfirmModalView
 User = get_user_model()
 
 
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        remember_me = bool(request.POST.get('remember_me'))
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-
-            if remember_me:
-                request.session.set_expiry(getattr(settings, "SESSION_REMEMBER_ME_SECS", 60 * 60 * 24 * 30))  # 30 days
-            else:
-                request.session.set_expiry(60 * 60)  # 1 hr
-
-            next_url = request.POST.get(REDIRECT_FIELD_NAME) or request.GET.get(REDIRECT_FIELD_NAME)
-            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-                return redirect(next_url)
-            return redirect("home")
-        messages.error(request, "Invalid username or password.")
-        return redirect("login")
-
-    # Ensure template includes a hidden 'next' field if present
-    ctx = {REDIRECT_FIELD_NAME: request.GET.get(REDIRECT_FIELD_NAME, "")}
-    return render(request, 'users-login.html', ctx)
-
-
 def user_logout(request):
     logout(request)
     messages.success(request, "You have been logged out.")
-    return redirect("login")
+    return redirect("account_login")
 
 
 @api_view(['GET'])

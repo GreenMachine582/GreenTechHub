@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 socialaccount %}
+{% load i18n static %}
 
 {% block meta %}
-  {% with page_title="Register - "|add:site_name %}
+  {% with page_title="Register"|add:" - "|add:site_name %}
     {{ block.super }}
   {% endwith %}
 {% endblock %}
@@ -13,26 +15,28 @@
         <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
 
           <div class="d-flex justify-content-center py-4">
-            <a href="index.html" class="logo d-flex align-items-center w-auto">
-              <img src="/static/img/logo.png" alt="">
-              <span class="d-none d-lg-block">GreenTechHub</span>
+            <a href="/" class="logo d-flex align-items-center w-auto text-decoration-none">
+              <img src="{% static 'img/logo.png' %}" alt="GreenTechHub logo" />
+              <span class="d-none d-lg-block ms-2">{{ site_name }}</span>
             </a>
-          </div><!-- End Logo -->
+          </div>
 
           <div class="card mb-3">
-
             <div class="card-body">
 
               <div class="pt-4 pb-2">
-                <h5 class="card-title text-center pb-0 fs-4">Create an Account</h5>
-                <p class="text-center small">Enter your personal details to create account</p>
+                <h5 class="card-title text-center pb-0 fs-4">{% trans "Create an Account" %}</h5>
+                <p class="text-center small">{% trans "Enter your personal details to create account." %}</p>
               </div>
 
-              <form class="row g-3 needs-validation" method="post" novalidate>
+              <form method="post"
+                    action="{% if action_url %}{{ action_url }}{% url 'account_reset_password' %}{% endif %}"
+                    class="row g-3 needs-validation" novalidate>
                 {% csrf_token %}
-                <div class="col-12">
-                  <label class="form-label">Name:</label>
-                  <div class="row align-items-start">
+
+                <div class="mb-3 col-12">
+                  <label class="form-label">First & Last Name</label>
+                  <div class="row">
                     <div class="col">
                      {{ form.first_name }}
                     </div>
@@ -40,34 +44,59 @@
                      {{ form.last_name }}
                     </div>
                   </div>
+
+                  {# First name errors #}
+                  {% if form.first_name.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ form.first_name.errors|striptags }}
+                    </div>
+                  {% endif %}
+
+                  {# Last name errors #}
+                  {% if form.last_name.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ form.last_name.errors|striptags }}
+                    </div>
+                  {% endif %}
+
+                  {% if form.first_name.help_text or form.last_name.help_text %}
+                    <div class="form-text">
+                      {{ form.first_name.help_text|default_if_none:"" }}
+                      {% if form.first_name.help_text and form.last_name.help_text %}<br>{% endif %}
+                      {{ form.last_name.help_text|default_if_none:"" }}
+                    </div>
+                  {% endif %}
                 </div>
 
-                <div class="col-12">
-                  {{ form.email.label_tag }}
-                  {{ form.email }}
-                </div>
+                {% bootstrap_form form exclude='first_name,last_name' alert_error_type='fields' %}
 
                 <div class="col-12">
-                  {{ form.username.label_tag }}
-                  <div class="input-group has-validation">
-                    {{ form.username }}
-                  </div>
-                </div>
-
-                <div class="col-12">
-                  {{ form.password.label_tag }}
-                  {{ form.password }}
-                </div>
-
-                <div class="col-12">
-                  <button class="btn btn-primary w-100" type="submit">Create Account</button>
+                  <button class="btn btn-primary w-100" type="submit">{% trans "Create Account" %}</button>
                 </div>
                 <div class="col-12">
                   <p class="small mb-0">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
                 </div>
               </form>
+
+              <div class="text-divider">or</div>
+              <div class="mt-4">
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'google' %}" class="btn btn-social w-100 google" title="Login with Google">
+                    <i class="fab fa-google"></i>
+                    <span class="btn-text">Google</span>
+                  </a>
+                </div>
+                <div class="mb-2">
+                  <a href="{% provider_login_url 'github' %}" class="btn btn-social w-100 github" title="Login with Github">
+                    <i class="fab fa-github"></i>
+                    <span class="btn-text">Github</span>
+                  </a>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

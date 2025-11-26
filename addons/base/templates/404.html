@@ -1,53 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+{% extends "base.html" %}
+{% load static i18n %}
 
-  <title>Not Found 404 - GreenTechHub</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+{% block meta %}
+  {% with page_title="Not Found (404)"|add:" - "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
 
-  <!-- Favicons -->
-  <link href="/static/img/logo.png" rel="icon">
+{% block main %}
+  <section class="section error-404 min-vh-100 d-flex flex-column align-items-center justify-content-center">
+    <div class="container text-center">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+      <h1 class="display-1 fw-bold text-primary">404</h1>
+      <h2 class="h4 mb-3">
+        {% trans "The page you are looking for doesn't exist." %}
+      </h2>
 
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+      <p class="text-muted mb-4">
+        {% trans "It might have been moved, renamed, or may never have existed." %}
+      </p>
 
-  <!-- Package CSS Files -->
-  <link href="/static/packages/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+      <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mb-4">
+        <a href="{% url 'home' %}" class="btn btn-primary">
+          <i class="fas fa-home me-1"></i> {% trans "Back to Home" %}
+        </a>
+        <a href="mailto:{{ support_email|default:'support@example.com' }}" class="btn btn-outline-secondary d-none">
+          <i class="fas fa-envelope me-1"></i> {% trans "Contact Support" %}
+        </a>
+      </div>
 
-  <!-- Template Main CSS File -->
-  <link href="/static/css/style.css" rel="stylesheet">
-</head>
-<body>
+      <img src="{% static 'img/not-found.svg' %}"
+           class="img-fluid py-4"
+           alt="{% trans 'Illustration of a page not found' %}"
+           style="max-width: 420px;">
 
-  <main>
-    <div class="container">
+      <p class="text-muted small mb-0">
+        {% trans "If you think this is a mistake, please let us know." %}
+      </p>
 
-      <section class="section error-404 min-vh-100 d-flex flex-column align-items-center justify-content-center">
-        <h1>404</h1>
-        <h2>The page you are looking for doesn't exist.</h2>
-        <a class="btn" href="/">Back to home</a>
-        <img src="/static/img/not-found.svg" class="img-fluid py-5" alt="Page Not Found">
-        <div class="credits">
-          Designed by <a href="https://github.com/GreenMachine582/GreenTechHub">GreenMachine</a>
-        </div>
-      </section>
+      <div class="credits mt-3 small text-muted">
+        {% trans "Designed by" %} <a href="https://github.com/GreenMachine582/GreenTechHub" target="_blank" rel="noopener">GreenMachine</a>
+      </div>
 
     </div>
-  </main><!-- End #main -->
-
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="fas fa-arrow-up"></i></a>
-
-  <!-- Bootstrap 5 JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Template Main JS File -->
-  <script src="/static/js/main.js"></script>
-</body>
-</html>
+  </section>
+{% endblock %}

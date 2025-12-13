@@ -30,6 +30,8 @@ def env_int(name, default):
 # ------------------ base paths & env ------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
+if (BASE_DIR / ".env.secret").exists():
+    load_dotenv(BASE_DIR / ".env.secret")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = env_bool("DJANGO_DEBUG", "1")

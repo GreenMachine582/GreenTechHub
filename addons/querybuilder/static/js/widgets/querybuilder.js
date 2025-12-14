@@ -1,4 +1,4 @@
-import { select, on, onclick } from "../helpers.js";
+import { select, on, onclick } from "../../../base/js/helpers.js";
 
 (function () {
   'use strict';

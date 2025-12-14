@@ -1,0 +1,18 @@
+// ============================================================================
+// Layout: footer
+// ============================================================================
+
+.app-footer {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-secondary-color);
+  font-size: 0.825rem;
+  flex-shrink: 0;
+
+  a {
+    color: var(--bs-link-color);
+
+    &:hover {
+      color: var(--bs-link-hover-color);
+    }
+  }
+}

@@ -1,0 +1,32 @@
+// ============================================================================
+// Component: text-divider
+// ============================================================================
+
+.text-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.text-divider {
+  color: var(--bs-secondary-color);
+  font-weight: 500;
+  font-size: 0.875rem;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--bs-border-color);
+  }
+}
+
+.text-divider::before {
+  margin-right: 1rem;
+}
+
+.text-divider::after {
+  margin-left: 1rem;
+}

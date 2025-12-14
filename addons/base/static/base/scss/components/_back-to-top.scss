@@ -1,0 +1,35 @@
+// ============================================================================
+// Component: back-to-top button
+// ============================================================================
+
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: var(--bs-primary);
+  color: #fff;
+  border-radius: 50%;
+  text-decoration: none;
+
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+  z-index: 1050; // Above sidebar & header
+
+  &:hover {
+    background-color: var(--bs-primary-hover, #169617);
+    color: #fff;
+  }
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+  }
+}

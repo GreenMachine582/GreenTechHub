@@ -1,5 +1,5 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/querybuilder.css' %}">
+<link rel="stylesheet" href="{% static 'querybuilder/css/querybuilder.css' %}">
 
 <div class="qb-root"
      data-qb
@@ -19,4 +19,4 @@
   window.__QB_CONFIGS__["{{ config_id|escapejs }}"] = {{ fields_json|safe }};
 </script>
 
-<script type="module" src="{% static 'js/widgets/querybuilder.js' %}"></script>
+<script type="module" src="{% static 'querybuilder/js/widgets/querybuilder.js' %}"></script>

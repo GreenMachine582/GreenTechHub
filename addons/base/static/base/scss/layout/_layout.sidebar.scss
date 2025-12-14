@@ -1,0 +1,97 @@
+// ============================================================================
+// Layout: sidebar
+// ============================================================================
+
+@use "../abstracts/variables" as *;
+
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--bs-border-color);
+  background-color: var(--bs-card-bg);
+  color: var(--bs-body-color);
+  padding: 0.75rem 0.75rem 1rem;
+  z-index: 1020;
+  overflow-y: auto;
+  box-shadow: var(--app-shadow-soft);
+  transition: width 0.3s ease, transform 0.3s ease;
+  width: var(--app-sidebar-width);
+}
+
+// Icon-only state
+body.sidebar-icons-only .app-sidebar {
+  width: var(--app-sidebar-icon-width);
+}
+
+// Hidden sidebar
+body.sidebar-close .app-sidebar {
+  flex: 0 0 0;
+  width: 0 !important;
+  overflow: hidden;
+  padding: 0;
+}
+
+body.sidebar-icons-only .app-sidebar .nav-link span {
+  display: none;
+}
+
+body.sidebar-icons-only .app-sidebar .nav-link {
+  justify-content: center;
+}
+
+// Sticky nav inside sidebar
+@media (min-width: 992px) {
+  .app-sidebar__nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+// Sidebar branding
+.app-sidebar__brand {
+  padding: 0.25rem 0.25rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.app-sidebar__logo {
+  height: 24px;
+  width: auto;
+}
+
+.app-sidebar__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+// Section labels
+.app-sidebar__section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bs-secondary-color);
+  padding: 0.5rem 0.25rem;
+}
+
+// Links
+.app-sidebar__nav .nav-link {
+  font-size: 0.875rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--bs-body-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    width: 1.25rem;
+    text-align: center;
+  }
+
+  &.active,
+  &:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.08);
+    color: var(--bs-primary);
+  }
+}

@@ -1,0 +1,18 @@
+// ============================================================================
+// Component: buttons (icon-style)
+// ============================================================================
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background-color: transparent;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}

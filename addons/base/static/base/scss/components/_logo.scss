@@ -1,0 +1,30 @@
+// ============================================================================
+// Component: logo block
+// ============================================================================
+
+@use "../abstracts/variables" as *;
+
+.logo {
+  display: flex;
+  align-items: center;
+  //height: $app-header-height;
+  height: $app-header-height;
+
+  .logo-img {
+    height: 70%;
+    //max-height: $app-header-height - 20px;
+    max-height: $app-header-height - 20px;
+    width: auto;
+    object-fit: contain;
+    object-position: left;
+    display: block;
+    padding: 4px 0;
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .logo .logo-img {
+    max-height: 32px;
+  }
+}

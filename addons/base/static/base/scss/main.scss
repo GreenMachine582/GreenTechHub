@@ -1,0 +1,33 @@
+
+// ============================================================================
+// main.scss — entry point for all style modules
+// ============================================================================
+
+// 1. Variables & design tokens
+@use "abstracts/variables" as *;
+
+// 2. Bootstrap (uses overrides above)
+@use "bootstrap/scss/bootstrap";
+
+// 3. Layout
+@use "layout" as *;
+
+// 4. Components
+@use "components/back-to-top" as *;
+@use "components/bs-password" as *;
+@use "components/buttons" as *;
+@use "components/text-divider" as *;
+@use "components/logo" as *;
+
+// 5. Vendor tweaks
+@use "vendors/bootstrap_overrides" as *;
+
+.btn-social.google {
+  background-color: #db4437;
+  color: white;
+}
+
+.btn-social.github {
+  background-color: #333;
+  color: white;
+}

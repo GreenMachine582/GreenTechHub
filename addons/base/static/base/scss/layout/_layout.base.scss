@@ -1,0 +1,44 @@
+// ============================================================================
+// Layout base: html/body, app shell, main/content
+// ============================================================================
+
+@use "../abstracts/variables" as *;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-shell {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  background-color: rgba($app-green-light, 0.08);
+  transition: margin-left 0.3s ease;
+}
+
+.app-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+// Sidebar layout wrapper
+.app-shell {
+  transition: margin-left 0.3s;
+}

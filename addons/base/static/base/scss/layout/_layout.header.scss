@@ -1,0 +1,32 @@
+// ============================================================================
+// Layout: header / app-header
+// ============================================================================
+
+@use "../abstracts/variables" as *;
+
+.app-header {
+  height: $app-header-height;
+  padding: 0 1rem;
+  background-color: var(--bs-card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1030;
+  box-shadow: $app-shadow-medium;
+}
+
+// Logo inside header
+.app-header__logo {
+  height: $app-header-height * 0.7;
+  width: auto;
+}
+
+// Avatar + button
+.app-header__avatar {
+  height: $app-header-height * 0.7;
+  object-fit: cover;
+}
+
+.app-header__avatar-btn {
+  border-radius: 999px;
+}

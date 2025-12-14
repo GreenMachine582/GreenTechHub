@@ -1,0 +1,19 @@
+{
+  "name": "greentechhub",
+  "version": "1.0.0",
+  "description": "![Python version](https://img.shields.io/badge/python-3.12-blue.svg)\r ![GitHub release](https://img.shields.io/github/v/release/GreenMachine582/GreenTechHub?include_prereleases)\r ![GitHub deployments](https://img.shields.io/github/deployments/GreenMachine582/GreenTechHub/Production)",
+  "scripts": {
+    "watch:css": "node scripts/sass.mjs --watch",
+    "build:css": "node scripts/sass.mjs --style=compressed --no-source-map"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "sass": "^1.94.2"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.8"
+  }
+}

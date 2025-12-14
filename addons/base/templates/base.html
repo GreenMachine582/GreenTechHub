@@ -1,10 +1,11 @@
-{% load static %}
+{% load static i18n %}
 {% load django_bootstrap5 %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   {# ——— Meta & SEO ——— #}
   {% block meta %}
@@ -13,132 +14,176 @@
     <meta name="keywords" content="{{ meta_keywords }}">
     <meta property="og:title" content="{{ page_title|default:site_name }}">
     <meta property="og:description" content="{{ meta_description }}">
-    <meta property="og:image" content="{% static 'img/logo.png' %}">
+    <meta property="og:image" content="{% static 'base/img/logo.png' %}">
   {% endblock %}
 
   {# ——— Favicons ——— #}
-  <link rel="icon" href="{% static 'img/logo.png' %}">
+  <link rel="icon" href="{% static 'base/img/logo.png' %}">
 
-  {# ——— Google Fonts preconnect ——— #}
+  {# ——— Google Fonts ——— #}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i">
 
   {# ——— Vendor CSS ——— #}
-  {% bootstrap_css %}
   <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator_bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
 
-  {# ——— Other CSS ——— #}
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {# ——— Project SCSS (compiled) ——— #}
+  <link rel="stylesheet" href="{% static 'base/css/main.css' %}">
 
   {% block styles %}{% endblock %}
   {% block head_scripts %}{% endblock %}
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
+
   {# ——— Skip link for keyboard users ——— #}
-  <a class="skip-link visually-hidden-focusable" href="#main">Skip to main content</a>
+  <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 border rounded"
+     href="#main">
+    Skip to main content
+  </a>
 
   {# ======= Header ======= #}
-  <header id="header" class="header fixed-top d-flex align-items-center">
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="{% url 'home' %}" class="logo d-flex align-items-center">
-        <img src="{% static 'img/logo.png' %}" alt="{{ site_name }}" class="me-2" loading="lazy">
-        <span class="d-none d-lg-block">{{ site_name }}</span>
+  <header class="app-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-link p-0 me-1"
+              type="button"
+              aria-label="Toggle sidebar">
+        <i class="fas fa-bars-staggered icon-sidebar-toggle"></i>
+      </button>
+
+      {# Logo / Home #}
+      <a href="{% url 'home' %}"
+         class="app-header__brand d-flex align-items-center text-decoration-none">
+        <img src="{% static 'base/img/logo.png' %}"
+             alt="{{ site_name }}"
+             class="app-header__logo me-2"
+             loading="lazy">
       </a>
-      <i class="fas fa-bars-staggered icon-sidebar-toggle"></i>
+
+      {% block header_context %}{% endblock %}
     </div>
 
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-        <li class="nav-item dropdown pe-3">
+    <div class="app-header__actions d-flex align-items-center gap-2">
+      {# Profile dropdown #}
+      <div class="dropdown">
+        <button class="btn btn-link p-0 border-0 app-header__avatar-btn"
+                type="button"
+                id="profileDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          {% with avatar_url=request.user.profile.effective_avatar_url %}
+            {% if avatar_url %}
+              <img src="{{ avatar_url }}"
+                   alt="Profile avatar"
+                   loading="lazy"
+                   class="app-header__avatar rounded-circle object-fit-cover">
+            {% else %}
+              <div class="app-header__avatar rounded-circle d-flex align-items-center justify-content-center">
+                <i class="fas fa-user text-secondary avatar-icon"></i>
+              </div>
+            {% endif %}
+          {% endwith %}
+        </button>
 
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            {% with avatar_url=request.user.profile.effective_avatar_url %}
-              {% if avatar_url %}
-                <img src="{{ avatar_url }}" alt="avatar" loading="lazy"
-                     class="avatar rounded-circle object-fit-cover">
+        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile"
+            aria-labelledby="profileDropdown">
+          <li class="dropdown-header">
+            <h6 class="mb-0">
+              {% if not user.is_authenticated %}
+                Welcome, Guest!
               {% else %}
-                <div class="avatar rounded-circle bg-light d-flex align-items-center justify-content-center">
-                  <i class="fas fa-user text-secondary avatar-icon"></i>
-                </div>
+                {{ user.get_full_name|default:user.username }}
               {% endif %}
-            {% endwith %}
-          </a>
+            </h6>
+          </li>
+          <hr>
 
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-            <li class="dropdown-header">
-              <h6>{% if not user.is_authenticated %}Welcome, Guest!{% else %}{{ user.get_full_name }}{% endif %}</h6>
-            </li>
+          {% if user.is_authenticated %}
             <li>
-              <hr class="dropdown-divider">
-            </li>
-            {% if user.is_authenticated %}
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="{% url 'users-profile' %}">
-                <i class="fas fa-user-pen"></i>
+              <a class="dropdown-item d-flex align-items-center"
+                 href="{% url 'users-profile' %}">
+                <i class="fas fa-user-pen me-2"></i>
                 <span>My Profile</span>
               </a>
             </li>
+            <hr>
             <li>
-              <hr class="dropdown-divider">
+              <a class="dropdown-item d-flex align-items-center"
+                 href="{% url 'logout' %}">
+                <i class="fas fa-right-from-bracket me-2"></i>
+                <span>Sign Out</span>
+              </a>
             </li>
-            {% endif %}
-            {% if not user.is_authenticated %}
-              <li>
-                <a class="dropdown-item d-flex align-items-center" href="{% url 'account_login' %}">
-                  <i class="fas fa-right-to-bracket"></i>
-                  <span>Login</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item d-flex align-items-center" href="{% url 'account_signup' %}">
-                  <i class="fas fa-user-plus"></i>
-                  <span>Register</span>
-                </a>
-              </li>
-            {% else %}
-              <li>
-                <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">
-                  <i class="fas fa-right-from-bracket"></i>
-                  <span>Sign Out</span>
-                </a>
-              </li>
-            {% endif %}
-          </ul>
-        </li>
-      </ul>
-    </nav>
+          {% else %}
+            <li>
+              <a class="dropdown-item d-flex align-items-center"
+                 href="{% url 'account_login' %}">
+                <i class="fas fa-right-to-bracket me-2"></i>
+                <span>Login</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center"
+                 href="{% url 'account_signup' %}">
+                <i class="fas fa-user-plus me-2"></i>
+                <span>Register</span>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+
+    </div>
   </header>
 
-  {# ======= Sidebar ======= #}
-  {% include 'sidebar.html' %}
+  {# ======= App Shell (sidebar + main content) ======= #}
+  <div class="app-shell d-flex flex-grow-1">
 
-  {# ======= Main ======= #}
-  <main id="main" class="main">
-    {% block pagetitle %}{% endblock %}
-    {% include 'messages-alerts.html' %}
-    {% block main %}{% endblock %}
-  </main>
+    {# Sidebar (desktop) #}
+    {% include 'sidebar.html' %}
+
+    {# Main content column #}
+    <div class="app-main d-flex flex-column flex-grow-1">
+
+      <main id="main" class="app-content flex-grow-1">
+        <div class="container-fluid px-3 px-md-4 py-3">
+          {% block pagetitle %}{% endblock %}
+          {% include 'messages-alerts.html' %}
+          {% block main %}{% endblock %}
+        </div>
+      </main>
+
+      {# Back to top (floating) #}
+      <a href="#" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+      </a>
+
+    </div>
+  </div>
 
   {# ======= Footer ======= #}
-  <footer id="footer" class="footer">
-    <div class="copyright">
-      &copy; 2025-{% now "Y" %} {{ site_name }}. All Rights Reserved.
-    </div>
-    <div class="credits">
-      Designed by <a href="https://github.com/GreenMachine582/GreenTechHub">GreenMachine</a>
+  <footer id="footer" class="app-footer border-top">
+    <div class="container-fluid py-2 d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
+
+      <div class="app-footer__left mb-2 mb-md-0">
+        &copy; 2025–{% now "Y" %} {{ site_name }}. All Rights Reserved.
+      </div>
+
+      <div class="app-footer__right text-md-end">
+        Built with ❤️ by
+        <a href="https://github.com/GreenMachine582/GreenTechHub"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="text-decoration-none">
+          GreenMachine
+        </a>
+      </div>
+
     </div>
   </footer>
 
-  <a href="#" class="back-to-top" aria-label="Back to top">
-    <i class="fas fa-arrow-up"></i>
-  </a>
-
   {# ======= Modal Root(s) ======= #}
-  {# Reusable modal container for forms and confirmations. #}
   {% include "modal_forms/modal_root.html" %}
-
-  {# Optional additional modals #}
   {% block modals %}{% endblock %}
 
   {# ——— Vendor JS ——— #}
@@ -146,9 +191,9 @@
   <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js" defer></script>
 
   {# ——— Local JS ——— #}
-  <script type="module" src="{% static 'js/main.js' %}" defer></script>
+  <script type="module" src="{% static 'base/js/main.js' %}" defer></script>
   {% block modal_form_scripts %}
-    <script type="module" src="{% static 'js/widgets/modal_forms.js' %}" defer></script>
+    <script type="module" src="{% static 'modal_forms/js/widgets/modal_forms.js' %}" defer></script>
     {% include "partials/csrf_ajax.html" %}
   {% endblock %}
   {% block footer_scripts %}{% endblock %}

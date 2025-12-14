@@ -1,0 +1,122 @@
+
+
+// --------------------------------------------------------------------------
+// 1. Brand palette (raw colors)
+// --------------------------------------------------------------------------
+
+$app-green:       #1FBE1E; // rgb(31, 190, 30)
+$app-green-dark:  #169617;
+$app-green-light: #A6EBA6;
+
+$app-black:       #000000;
+$app-white:       #ffffff;
+
+$app-gray-900:    #1e1e1e;
+$app-gray-700:    #4a4a4a;
+$app-gray-500:    #777777;
+$app-gray-300:    #d0d0d0;
+$app-gray-100:    #f5f5f5;
+
+$app-blue:        #0d6efd;
+$app-orange:      #fd7e14;
+$app-red:         #dc3545;
+$app-yellow:      #ffc107;
+$app-teal:        #20c997;
+
+// --------------------------------------------------------------------------
+// 2. Semantic tokens (app-level)
+// --------------------------------------------------------------------------
+
+// Primary brand role
+$app-color-primary:        $app-green;
+$app-color-primary-dark:   $app-green-dark;
+$app-color-primary-light:  $app-green-light;
+
+// Backgrounds
+$app-color-bg-body:        #f6f9ff; // app workspace background
+$app-color-bg-surface:     $app-white;
+
+// Text
+$app-color-text-body:      #444444;
+$app-color-text-muted:     $app-gray-500;
+
+// Borders
+$app-color-border-subtle:  #dce3ee;
+$app-color-border-strong:  $app-gray-300;
+
+// --------------------------------------------------------------------------
+// 3. Bootstrap variable overrides
+// --------------------------------------------------------------------------
+// These MUST be defined before importing Bootstrap's SCSS.
+// They drive .btn-primary, .alert-primary, etc.
+// --------------------------------------------------------------------------
+
+// Core colors
+$primary:       $app-color-primary;
+$success:       $app-color-primary;
+$secondary:     $app-gray-700;
+$info:          $app-blue;
+$warning:       $app-yellow;
+$danger:        $app-red;
+
+// Body
+$body-bg:       $app-color-bg-body;
+$body-color:    $app-color-text-body;
+
+// Theme color map (used across many BS components)
+$theme-colors: (
+  "primary":   $primary,
+  "secondary": $secondary,
+  "success":   $success,
+  "info":      $info,
+  "warning":   $warning,
+  "danger":    $danger,
+);
+
+// Use data-bs-theme for color modes (Bootstrap 5.3+)
+$color-mode-type: data;
+
+// --------------------------------------------------------------------------
+// 4. Typography
+// --------------------------------------------------------------------------
+
+$font-family-sans-serif: "Open Sans", system-ui, -apple-system, sans-serif;
+$font-family-heading:    "Nunito", sans-serif;
+$font-family-accent:     "Poppins", sans-serif;
+
+$font-family-monospace:  SFMono-Regular, Menlo, Monaco, Consolas,
+                         "Liberation Mono", "Courier New", monospace;
+
+// Bootstrap base fonts
+$body-font-family:       $font-family-sans-serif;
+$headings-font-family:   $font-family-heading;
+
+// --------------------------------------------------------------------------
+// 5. Layout & elevation tokens
+// --------------------------------------------------------------------------
+
+// Layout
+$app-header-height: 60px;
+$app-sidebar-width: 260px;
+$app-sidebar-icon-width: 120px;
+
+// Elevation/shadows (light mode)
+$app-shadow-level-1: 0 1px 10px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10);
+$app-shadow-level-2: 0 2px 15px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.12);
+$app-shadow-level-3: 0 4px 30px rgba(0,0,0,0.12), 0 4px 14px rgba(0,0,0,0.16);
+
+// Elevation/shadows (dark mode)
+$app-shadow-dark-level-1: 0 1px 10px rgba(255,255,255,0.04), 0 1px 3px rgba(255,255,255,0.10);
+$app-shadow-dark-level-2: 0 2px 15px rgba(255,255,255,0.06), 0 2px 6px rgba(255,255,255,0.12);
+$app-shadow-dark-level-3: 0 4px 30px rgba(255,255,255,0.08), 0 4px 14px rgba(255,255,255,0.16);
+
+$app-shadow-soft:   #{$app-shadow-level-1};
+$app-shadow-medium: #{$app-shadow-level-2};
+$app-shadow-strong: #{$app-shadow-level-3};
+$app-shadow-accent: 0 0 0 1px rgba($app-color-primary, 0.18), 0 8px 20px rgba(0, 0, 0, 0.08);
+
+
+:root {
+  --app-sidebar-width: #{$app-sidebar-width};
+  --app-sidebar-icon-width: #{$app-sidebar-icon-width};
+}

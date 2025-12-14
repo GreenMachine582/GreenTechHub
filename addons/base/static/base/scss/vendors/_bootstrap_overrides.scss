@@ -1,0 +1,16 @@
+// ============================================================================
+// Bootstrap Overrides: Custom styles to override default Bootstrap variables and components
+// Depends on: _variables.scss
+// ============================================================================
+
+@use "../abstracts/variables" as *;
+
+$breadcrumb-divider: quote(">");
+
+// Space for password manager icon (NordPass/1Password/etc.)
+input.form-control[type="password"][data-np-uid],
+input.form-control[data-np-autofill-field-type="newPassword"] {
+  padding-right: calc(
+    var(--bs-form-control-padding-x, 0.75rem) + var(--pw-ext-icon-space)
+  ) !important;
+}

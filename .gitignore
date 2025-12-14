@@ -1,8 +1,9 @@
 # Miscellaneous
 .idea/
-/staticfiles
-/media
-/private_media
+node_modules/
+staticfiles/
+media/
+private_media/
 .env.*
 
 # Byte-compiled / optimized / DLL files

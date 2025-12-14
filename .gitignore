@@ -3,6 +3,7 @@
 /staticfiles
 /media
 /private_media
+.env.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

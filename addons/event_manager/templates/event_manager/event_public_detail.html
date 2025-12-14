@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block meta %}
+  {% with page_title=event.name|add:" – Public Event View – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{{ event.name }}</h1>
+    <nav>
+      <ol class="breadcrumb">
+
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+
+        <li class="breadcrumb-item">
+          {# Do NOT expose the internal event list. Keep this safe. #}
+          <span class="text-muted">{% trans "Event" %}</span>
+        </li>
+
+        <li class="breadcrumb-item active">
+          {{ event.name }}
+        </li>
+
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+<section class="section event-public-detail">
+  <div class="row">
+
+    <div class="col-lg-8">
+      <!-- Event Description -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title mb-1">
+            {{ event.name }}
+          </h5>
+
+          {% if event.short_description %}
+            <p class="text-muted mb-2">
+              {{ event.short_description }}
+            </p>
+          {% endif %}
+
+          {% if event.description %}
+            <p>{{ event.description|linebreaksbr }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Event Details -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Event details" %}</h6>
+
+          <dl class="row mb-0">
+
+            <dt class="col-sm-3">{% trans "Date" %}</dt>
+            <dd class="col-sm-9">
+              {{ event.date }}
+              {% if event.start_time %}
+                {{ event.start_time }}
+              {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">{% trans "Venue" %}</dt>
+            <dd class="col-sm-9">
+              {{ event.venue_name }}<br>
+              {{ event.venue_address|linebreaksbr }}
+            </dd>
+
+            <dt class="col-sm-3">{% trans "Status" %}</dt>
+            <dd class="col-sm-9">
+              {% if event.registration_is_open %}
+                <span class="badge bg-success">
+                  {% trans "Registration open" %}
+                </span>
+              {% else %}
+                <span class="badge bg-secondary">
+                  {% trans "Registration closed" %}
+                </span>
+              {% endif %}
+            </dd>
+
+            {% if event.capacity %}
+              <dt class="col-sm-3">{% trans "Capacity" %}</dt>
+              <dd class="col-sm-9">
+                {{ event.capacity }}
+              </dd>
+            {% endif %}
+
+            {% if event.rsvp_deadline %}
+              <dt class="col-sm-3">{% trans "RSVP deadline" %}</dt>
+              <dd class="col-sm-9">
+                {{ event.rsvp_deadline }}
+              </dd>
+            {% endif %}
+
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4
+      <div class="card mb-3">
+        <div class="card-body d-grid gap-2 text-center">
+
+          {% if event.registration_is_open %}
+            <p class="small text-muted mb-2">
+              {% trans "Use the button below to RSVP to this event." %}
+            </p>
+
+            {% if token %}
+              <a href="{% url 'event_manager:event_rsvp_public_token' slug=event.slug token=token %}"
+                 class="btn btn-primary">
+                <i class="fas fa-envelope-open-text me-1"></i>
+                {% trans "RSVP to this event" %}
+              </a>
+            {% elif event.allow_public_rsvp %}
+              <a href="{% url 'event_manager:event_rsvp_public' slug=event.slug %}"
+                 class="btn btn-primary">
+                <i class="fas fa-envelope-open-text me-1"></i>
+                {% trans "RSVP to this event" %}
+              </a>
+            {% else %}
+              <p class="text-muted mb-0">
+                {% trans "This RSVP link is invalid or expired." %}
+              </p>
+            {% endif %}
+
+          {% else %}
+            <p class="text-muted mb-2">
+              {% trans "RSVP is closed for this event." %}
+            </p>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Hosts info (safe to show) -->
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">{% trans "Hosted by" %}</h6>
+
+          <p class="mb-0">
+            {{ event.host.get_full_name|default:event.host.username }}
+          </p>
+          {% if event.cohosts.all %}
+            {% for u in event.cohosts.all %}
+              <p class="mb-0">
+                {{ u.get_full_name|default:u.username }}
+              </p>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

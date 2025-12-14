@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 i18n %}
+
+{% block meta %}
+  {% with page_title="Events – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{% trans "Events" %}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item active">
+          {% trans "Events" %}
+        </li>
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+  <section class="section">
+    <div class="card mb-3">
+      <div class="card-body">
+        <a href="{% url 'event_manager:event_create' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-1"></i> {% trans "Create Event" %}
+        </a>
+
+        {% if events %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" %}</th>
+                  <th>{% trans "Date" %}</th>
+                  <th>{% trans "Venue" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th class="text-end">{% trans "Actions" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for event in events %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'event_manager:event_detail' slug=event.slug %}">
+                        {{ event.name }}
+                      </a>
+                      {% if event.short_description %}
+                        <div class="small text-muted">
+                          {{ event.short_description }}
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {{ event.date }}
+                      {% if event.start_time %}
+                        <div class="small text-muted">
+                          {{ event.start_time }}
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {{ event.venue_name }}
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark text-capitalize">
+                        {{ event.get_status_display }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <a href="{% url 'event_manager:event_detail' slug=event.slug %}"
+                         class="btn btn-sm btn-outline-secondary">
+                        {% trans "View" %}
+                      </a>
+                      <a href="{% url 'event_manager:event_update' slug=event.slug %}"
+                         class="btn btn-sm btn-outline-primary ms-1">
+                        {% trans "Edit" %}
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">
+            {% trans "You haven't created any events yet." %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block meta %}
+  {% with page_title=event.name|add:" – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{{ event.name }}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_list' %}">
+            {% trans "Events" %}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">
+          {{ event.name }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title mb-1">
+              {{ event.name }}
+            </h5>
+            {% if event.short_description %}
+              <p class="text-muted mb-2">
+                {{ event.short_description }}
+              </p>
+            {% endif %}
+            {% if event.description %}
+              <p>{{ event.description|linebreaksbr }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-title">{% trans "Event details" %}</h6>
+            <dt class="col-sm-3">{% trans "Hosts" %}</dt>
+              <dd class="col-sm-9">
+                {{ event.host.get_full_name|default:event.host.username }}
+                {% if event.cohosts.all %}
+                  {% for u in event.cohosts.all %}
+                    {% if not forloop.first or event.host %}
+                      ,
+                    {% endif %}
+                    {{ u.get_full_name|default:u.username }}
+                  {% endfor %}
+                {% endif %}
+              </dd>
+
+            <dl class="row mb-0">
+              <dt class="col-sm-3">{% trans "Date" %}</dt>
+              <dd class="col-sm-9">
+                {{ event.date }}
+                {% if event.start_time %}
+                  {{ event.start_time }}
+                {% endif %}
+              </dd>
+
+              <dt class="col-sm-3">{% trans "Venue" %}</dt>
+              <dd class="col-sm-9">
+                {{ event.venue_name }}<br>
+                {{ event.venue_address|linebreaksbr }}
+              </dd>
+
+              <dt class="col-sm-3">{% trans "Status" %}</dt>
+              <dd class="col-sm-9">
+                <span class="badge bg-light text-dark text-capitalize">
+                  {{ event.get_status_display }}
+                </span>
+                {% if event.registration_is_open %}
+                  <span class="badge bg-success ms-2">
+                    {% trans "Registration open" %}
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary ms-2">
+                    {% trans "Registration closed" %}
+                  </span>
+                  <div class="mt-2 small text-muted">
+
+                    {% if event.status != "published" %}
+                      <div>
+                        🔒 {% trans "Registration cannot open because the event is still in draft/archived status." %}
+                        <br>
+                        ➤ {% trans "Set the event status to 'Published' to enable RSVPs." %}
+                      </div>
+
+                    {% elif event.rsvp_deadline and event.rsvp_deadline < today %}
+                      <div>
+                        🔒 {% trans "The RSVP deadline has passed." %}
+                        <br>
+                        ➤ {% trans "Extend the RSVP deadline to reopen registration." %}
+                      </div>
+
+                    {% elif event.date < today %}
+                      <div>
+                        🔒 {% trans "The event date has already passed." %}
+                        <br>
+                        ➤ {% trans "Registration cannot be reopened after the event date." %}
+                      </div>
+
+                    {% else %}
+                      <div>
+                        🔒 {% trans "Registration is currently closed due to the event settings." %}
+                        <br>
+                        ➤ {% trans "Ensure the event is published and the RSVP deadline is in the future." %}
+                      </div>
+                    {% endif %}
+
+                  </div>
+
+                {% endif %}
+              </dd>
+
+              {% if event.capacity %}
+                <dt class="col-sm-3">{% trans "Capacity" %}</dt>
+                <dd class="col-sm-9">
+                  {{ event.capacity }}
+                </dd>
+              {% endif %}
+
+              {% if event.rsvp_deadline %}
+                <dt class="col-sm-3">{% trans "RSVP deadline" %}</dt>
+                <dd class="col-sm-9">
+                  {{ event.rsvp_deadline }}
+                </dd>
+              {% endif %}
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card mb-3">
+          <div class="card-body d-grid gap-2">
+
+            <a href="{% url 'event_manager:event_update' slug=event.slug %}"
+               class="btn btn-primary">
+              {% trans "Edit event" %}
+            </a>
+
+            <a href="{% url 'event_manager:event_attendee_list' slug=event.slug %}"
+               class="btn btn-outline-secondary">
+              {% trans "Attendee management" %}
+            </a>
+
+            {% if perms.event_manager.change_event %}
+
+              {% if event.status != "published" %}
+                <form method="post"
+                      action="{% url 'event_manager:event_publish' slug=event.slug %}"
+                      class="d-grid">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success">
+                    <i class="fas fa-upload me-1"></i>
+                    {% trans "Publish event" %}
+                  </button>
+                </form>
+              {% endif %}
+
+              {% if event.status != "archived" %}
+                <form method="post"
+                      action="{% url 'event_manager:event_archive' slug=event.slug %}"
+                      class="d-grid">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-box-archive me-1"></i>
+                    {% trans "Archive event" %}
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+
+        {% if perms.event_manager.change_event %}
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title">
+                {% trans "Shareable RSVP link" %}
+              </h6>
+              <p class="small text-muted">
+                {% trans "Share this link with guests so they can RSVP to this event." %}
+              </p>
+
+              <div class="mb-2">
+                <label for="shared-rsvp-link-input" class="form-label small mb-1">
+                  {% trans "Link" %}
+                </label>
+                <div class="input-group">
+                  <input type="text"
+                         id="shared-rsvp-link-input"
+                         class="form-control form-control-sm"
+                         value="{{ shared_rsvp_url }}"
+                         readonly>
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          data-copy-target="#shared-rsvp-link-input">
+                    <i class="fas fa-copy me-1"></i>
+                    {% trans "Copy" %}
+                  </button>
+                </div>
+              </div>
+
+              <form method="post"
+                    action="{% url 'event_manager:event_shared_link_regenerate' slug=event.slug %}"
+                    class="mt-2">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('{% trans "Regenerate link? Existing shared links will stop working." %}');">
+                  <i class="fas fa-arrows-rotate me-1"></i>
+                  {% trans "Regenerate link" %}
+                </button>
+              </form>
+
+              <p class="small text-muted mt-2 mb-0">
+                {% trans "This link uses a secret token. Regenerating it will invalidate any previously shared URLs." %}
+              </p>
+            </div>
+          </div>
+
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+{% endblock %}

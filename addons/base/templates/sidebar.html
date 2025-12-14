@@ -53,6 +53,32 @@
       </li><!-- End Login Page Nav -->
     {% endif %}
 
+    {% if perms.event_manager.view_event %}
+      <li class="nav-item mt-3 mb-1">
+        <span class="nav-heading text-uppercase text-muted small px-3">Events</span>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link d-flex align-items-center gap-2
+                  {% if site_path == '/events/' %}active{% else %}collapsed{% endif %}"
+           href="{% url 'event_manager:event_list' %}">
+          <i class="fas fa-calendar-days fa-fw"></i>
+          <span>Event List</span>
+        </a>
+      </li>
+
+      {% if perms.event_manager.add_event %}
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-2
+                    {% if site_path == '/events/create/' %}active{% else %}collapsed{% endif %}"
+             href="{% url 'event_manager:event_create' %}">
+            <i class="fas fa-calendar-plus fa-fw"></i>
+            <span>Create Event</span>
+          </a>
+        </li>
+      {% endif %}
+    {% endif %}
+
   </ul>
 
   <ul class="sidebar-nav sidebar-nav-bottom" id="sidebar-nav-bottom">

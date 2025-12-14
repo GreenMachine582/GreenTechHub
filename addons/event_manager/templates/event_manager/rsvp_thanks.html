@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block meta %}
+  {% with page_title="RSVP received – "|add:event.name|add:" – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{% trans "RSVP received" %}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_list' %}">
+            {% trans "Events" %}
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          {% if shared_token %}
+            <a href="{% url 'event_manager:event_public_detail' slug=event.slug token=shared_token %}">
+              {{ event.name }}
+            </a>
+          {% else %}
+            <a href="{% url 'event_manager:event_detail' slug=event.slug %}">
+              {{ event.name }}
+            </a>
+          {% endif %}
+        </li>
+        <li class="breadcrumb-item active">
+          {% trans "RSVP received" %}
+        </li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+{% endblock %}
+
+{% block main %}
+  <section class="section event-rsvp-thanks">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+          <div class="card">
+            <div class="card-body text-center py-5">
+
+              <h5 class="card-title mb-3">
+                {% if attendee %}
+                  {% blocktrans with attendee_name=attendee.full_name %}
+                    Thank you, {{ attendee_name }}!
+                  {% endblocktrans %}
+                {% else %}
+                  {% trans "Thank you for your RSVP!" %}
+                {% endif %}
+              </h5>
+
+              <p class="mb-3">
+                {% blocktrans with event_name=event.name %}
+                  Your response for {{ event_name }} has been recorded.
+                {% endblocktrans %}
+              </p>
+
+              {% if shared_token %}
+                <a href="{% url 'event_manager:event_public_detail' slug=event.slug token=shared_token %}"
+                   class="btn btn-primary">
+                  {% trans "Back to event" %}
+                </a>
+              {% else %}
+                <a href="{% url 'event_manager:event_detail' slug=event.slug %}"
+                   class="btn btn-primary">
+                  {% trans "Back to event" %}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

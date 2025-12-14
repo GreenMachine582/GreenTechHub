@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block meta %}
+  {% with page_title=event.name|add:" – Attendees – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{% trans "Attendees" %}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_list' %}">
+            {% trans "Events" %}
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_detail' slug=event.slug %}">
+            {{ event.name }}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">
+          {% trans "Attendees" %}
+        </li>
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+  <section class="section event-attendees">
+    <div class="row mb-3">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3">
+              {% trans "Summary" %}
+            </h5>
+
+            <div class="row">
+              <div class="col-sm-6 col-md-3 mb-2">
+                <div class="small text-muted">{% trans "Total records" %}</div>
+                <div class="fw-bold">{{ total_records }}</div>
+              </div>
+              <div class="col-sm-6 col-md-3 mb-2">
+                <div class="small text-muted">{% trans "Accepted" %}</div>
+                <div class="fw-bold">
+                  {{ accepted_records }} ({{ accepted_headcount }} {% trans "people" %})
+                </div>
+              </div>
+              <div class="col-sm-6 col-md-3 mb-2">
+                <div class="small text-muted">{% trans "Pending" %}</div>
+                <div class="fw-bold">
+                  {{ pending_records }} ({{ pending_headcount }} {% trans "people" %})
+                </div>
+              </div>
+              <div class="col-sm-6 col-md-3 mb-2">
+                <div class="small text-muted">{% trans "Declined / Maybe" %}</div>
+                <div class="fw-bold">
+                  {{ declined_records }} / {{ maybe_records }}
+                </div>
+              </div>
+            </div>
+
+            {% if event.capacity %}
+              <div class="mt-3">
+                <span class="small text-muted">
+                  {% trans "Capacity" %}:
+                </span>
+                <span class="fw-bold">
+                  {{ accepted_headcount }} / {{ event.capacity }}
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 mt-3 mt-lg-0">
+        <div class="card">
+          <div class="card-body d-grid gap-2">
+            <a href="{% url 'event_manager:event_detail' slug=event.slug %}"
+               class="btn btn-outline-secondary">
+              {% trans "Back to event" %}
+            </a>
+            <a href="{% url 'event_manager:event_attendee_export_csv' slug=event.slug %}"
+               class="btn btn-outline-primary">
+              <i class="fas fa-file-csv me-1"></i>
+              {% trans "Export CSV" %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">
+          {% trans "Attendee list" %}
+        </h5>
+
+        {% if attendees %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" %}</th>
+                  <th>{% trans "Email" %}</th>
+                  <th>{% trans "Phone" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Count" %}</th>
+                  <th>{% trans "Dietary" %}</th>
+                  <th>{% trans "Source" %}</th>
+                  <th>{% trans "Responded at" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in attendees %}
+                  <tr>
+                    <td>
+                      {{ a.full_name }}
+                      {% if a.user %}
+                        <div class="small text-muted">
+                          @{{ a.user.username }}
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td>{{ a.email }}</td>
+                    <td>{{ a.phone }}</td>
+                    <td>
+                      <span class="badge bg-light text-dark text-capitalize">
+                        {{ a.get_status_display }}
+                      </span>
+                    </td>
+                    <td>{{ a.attending_count }}</td>
+                    <td class="small">
+                      {{ a.dietary_requirements|truncatechars:40 }}
+                    </td>
+                    <td class="small">
+                      {{ a.get_registration_source_display }}
+                    </td>
+                    <td class="small">
+                      {% if a.responded_at %}
+                        {{ a.responded_at|date:"Y-m-d H:i" }}
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">
+            {% trans "No attendees yet." %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

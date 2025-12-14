@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 i18n %}
+
+{% block meta %}
+  {% with page_title=record_id|yesno:"Edit Event – ,Add Event – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{% trans "Event" %}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_list' %}">
+            {% trans "Events" %}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">
+          {% if record_id %}
+            {% trans "Edit Event" %}
+          {% else %}
+            {% trans "Add Event" %}
+          {% endif %}
+        </li>
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+  <section class="section">
+    <div class="card mb-3">
+      <div class="card-body">
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if record_id %}
+            {% bootstrap_button _("Save") button_type="submit" %}
+          {% else %}
+            {% bootstrap_button _("Create") button_type="submit" button_class="btn-success" %}
+          {% endif %}
+
+          {% if cancel_url %}
+            {% bootstrap_button _("Cancel") button_type="link" href=cancel_url button_class="btn-secondary" %}
+          {% endif %}
+
+          <div class="divider my-3"></div>
+
+          {% bootstrap_form form %}
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

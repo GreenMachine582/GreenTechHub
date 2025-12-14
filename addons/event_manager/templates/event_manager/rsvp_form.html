@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 i18n static %}
+
+{% block meta %}
+  {% with page_title="RSVP to "|add:event.name|add:" – "|add:site_name %}
+    {{ block.super }}
+  {% endwith %}
+{% endblock %}
+
+{% block pagetitle %}
+  <div class="pagetitle">
+    <h1>{% trans "RSVP" %}</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{% url 'home' %}">
+            <i class="fas fa-house"></i>
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'event_manager:event_list' %}">
+            {% trans "Events" %}
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          {% if shared_token %}
+            <a href="{% url 'event_manager:event_public_detail' slug=event.slug token=shared_token %}">
+              {{ event.name }}
+            </a>
+          {% else %}
+            <a href="{% url 'event_manager:event_detail' slug=event.slug %}">
+              {{ event.name }}
+            </a>
+          {% endif %}
+        </li>
+        <li class="breadcrumb-item active">
+          {% trans "RSVP" %}
+        </li>
+      </ol>
+    </nav>
+  </div>
+{% endblock %}
+
+{% block main %}
+  <section class="section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-4 col-md-6">
+
+          <div class="card mb-3">
+            <div class="card-body">
+
+              <div class="pt-2 pb-3 text-center">
+                <h5 class="card-title pb-0 fs-4">
+                  {% blocktrans with event_name=event.name %}
+                    RSVP for {{ event_name }}
+                  {% endblocktrans %}
+                </h5>
+                <p class="small text-muted mb-1">
+                  {% blocktrans with event_date=event.date event_venue=event.venue_name %}
+                    {{ event_date }} at {{ event_venue }}
+                  {% endblocktrans %}
+                </p>
+
+                {% if attendee %}
+                  <p class="small mb-0">
+                    {% blocktrans with attendee_name=attendee.full_name %}
+                      For {{ attendee_name }}
+                    {% endblocktrans %}
+                  </p>
+                {% endif %}
+              </div>
+
+              <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                {% bootstrap_form_errors form alert_error_type="all" %}
+                {% bootstrap_form form layout="vertical" %}
+
+                <div class="d-grid mt-3">
+                  <button type="submit" class="btn btn-primary">
+                    {% trans "Submit RSVP" %}
+                  </button>
+                </div>
+              </form>
+              <hr class="my-4">
+
+              <div class="text-center">
+                {% if shared_token %}
+                  <a href="{% url 'event_manager:event_public_detail' slug=event.slug token=shared_token %}"
+                     class="btn btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i> {% trans "View Event" %}
+                  </a>
+                {% else %}
+                  <a href="{% url 'event_manager:event_detail' slug=event.slug %}"
+                     class="btn btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i> {% trans "View Event" %}
+                  </a>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

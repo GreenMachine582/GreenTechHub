@@ -46,14 +46,32 @@ class Role(models.Model):
 class User(AbstractUser):
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
 
-    def hasGroups(self, code_name: str, *code_names: tuple[str]) -> bool:
-        user_group_ids = set(self.groups.values_list('id', flat=True))
-        if self.role:
-            user_group_ids |= set(self.role.groups.values_list('id', flat=True))
+    def _group_ids(self) -> frozenset[int]:
+        """All effective group IDs for this user (direct + role-inherited)."""
+        ids = set(self.groups.values_list('id', flat=True))
+        if self.role_id:
+            ids |= set(self.role.groups.values_list('id', flat=True))
+        return frozenset(ids)
 
-        code_names = (code_name,) + code_names
-        for code_name in code_names:
-            group = GroupProfile.get_group_by_code_name(code_name)
-            if group and (group.id in user_group_ids):
+    def hasGroups(self, *args) -> bool:
+        """Check group membership with optional boolean expressions.
+
+        Forms:
+          hasGroups("a", "b")              — OR across strings (backward compatible)
+          hasGroups(G("a") & G("b"))       — GroupExpr with &, |, ~ operators
+          hasGroups({"combinator": ...})   — querybuilder-compatible dict tree
+        """
+        from .access import GroupExpr, eval_group_tree
+        group_ids = self._group_ids()
+
+        if len(args) == 1 and isinstance(args[0], GroupExpr):
+            return args[0].eval(group_ids)
+
+        if len(args) == 1 and isinstance(args[0], dict):
+            return eval_group_tree(args[0], group_ids)
+
+        for code_name in args:
+            group = GroupProfile.get_group_by_code_name(str(code_name))
+            if group and group.id in group_ids:
                 return True
         return False

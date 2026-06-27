@@ -47,20 +47,36 @@ django.contrib.auth.Group      ← standard permission container
 
 ## Access Checking
 
-### In Python code
+### Simple Python usage (OR logic)
 
 ```python
 user.hasGroups("admin_group")                   # single group check
 user.hasGroups("admin_group", "pyfinbot_user")  # OR — True if user has either
 ```
 
-Internally, `hasGroups` checks:
-1. The user's direct `user.groups` (Django M2M)
-2. The user's `user.role.groups` (groups inherited via Role)
+Internally, `hasGroups` checks both the user's direct `user.groups` AND groups inherited via `user.role`. **Never** use `user.groups.filter(...)` directly — it misses role-inherited groups.
 
-**Never** use `user.groups.filter(name=...).exists()` — it misses role-inherited groups.
+### Complex boolean expressions
 
-### Via REST API
+Import `G` plus the explicit constructors or use Python operator syntax (`&`, `|`, `~`):
+
+```python
+from addons.authentication.access import G, AND, OR, NOT
+
+# Operator syntax
+user.hasGroups(G("admin_group") & G("api_group"))         # both required (AND)
+user.hasGroups(G("admin_group") | G("pyfinbot_user"))     # either (OR)
+user.hasGroups(G("admin_group") & ~G("suspended"))        # admin AND NOT suspended
+user.hasGroups(G("a") & (G("b") | ~G("c")))              # nested grouping
+
+# Explicit constructor form (equivalent)
+user.hasGroups(AND(G("admin_group"), NOT(G("suspended"))))
+user.hasGroups(OR(G("admin_group"), G("pyfinbot_user")))
+```
+
+`G(code_name)` is a leaf node. Operator precedence follows Python: `~` binds tightest, then `&`, then `|`. Use parentheses to override.
+
+### Via REST API (simple)
 
 External services (e.g., microservices) can check access via:
 ```
@@ -73,6 +89,42 @@ Content-Type: application/json
 Returns `{"allowed": true}` or `{"allowed": false}`.
 
 Multiple groups (OR logic): `{"groups": "admin_group,pyfinbot_user"}`
+
+### Via REST API (complex tree)
+
+For boolean expressions, pass a `"tree"` key using the querybuilder-compatible format:
+
+```json
+POST /api/access-check/
+{
+  "tree": {
+    "combinator": "AND",
+    "rules": [
+      {"type": "rule", "group": "admin_group"},
+      {
+        "type": "group",
+        "combinator": "OR",
+        "rules": [
+          {"type": "rule", "group": "api_group"},
+          {"type": "rule", "group": "suspended", "not": true}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Tree node types:**
+
+| Node | Fields | Effect |
+|---|---|---|
+| Rule | `"type": "rule"`, `"group": "code_name"` | Membership check |
+| Rule (negated) | `"type": "rule"`, `"group": "code_name"`, `"not": true` | NOT membership |
+| Group (AND) | `"type": "group"`, `"combinator": "AND"`, `"rules": [...]` | All children must pass |
+| Group (OR) | `"type": "group"`, `"combinator": "OR"`, `"rules": [...]` | Any child must pass |
+| Group (NOT) | `"type": "group"`, `"combinator": "NOT"`, `"rules": [...]` | Negates AND of all children |
+
+Empty `"rules"` arrays evaluate to `true` (no restriction). The tree format is intentionally compatible with the querybuilder widget's JSON output.
 
 ---
 

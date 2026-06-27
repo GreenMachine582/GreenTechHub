@@ -201,7 +201,7 @@ python server.py test
 
 4. **Microservice must be registered in the DB.** `MicroserviceClient.forPrefix()` does a DB lookup at runtime. Go to `/admin/microservice/microservice/add/` and ensure `is_active=True`.
 
-5. **`user.hasGroups()` includes role-inherited groups.** Raw `user.groups.filter(...)` only checks direct membership. Always use `hasGroups("code_name")` for access checks.
+5. **`user.hasGroups()` includes role-inherited groups.** Raw `user.groups.filter(...)` only checks direct membership. Always use `hasGroups("code_name")` for access checks. For AND/OR/NOT logic use `G`, `AND`, `OR`, `NOT` from `addons.authentication.access`: `user.hasGroups(G("admin") & ~G("suspended"))`.
 
 6. **URL kwarg is `record_id`, not `pk`.** `BaseMicroserviceFormView` reads `self.kwargs.get("record_id")`. Using `pk` in URL patterns causes edit views to behave like create.
 

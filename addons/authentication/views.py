@@ -44,6 +44,13 @@ def user_info(request):
 def access_check(request):
     user = request.user
 
+    # Complex expression via querybuilder-compatible tree
+    tree = request.data.get('tree')
+    if tree is not None:
+        from .access import eval_group_tree
+        return Response({'allowed': eval_group_tree(tree, user._group_ids())})
+
+    # Simple format: {"group": "x"} or {"groups": "x,y,z"} — OR logic
     required_group = request.data.get('group', '')
     required_groups = set(request.data.get('groups', '').split(',')) - {''}
 
@@ -52,14 +59,7 @@ def access_check(request):
             return Response({'allowed': False})
         required_groups = {required_group}
 
-    user_group_ids = set(user.groups.values_list('id', flat=True))
-
-    for group_code in required_groups:
-        group = GroupProfile.get_group_by_code_name(group_code)
-        if group and group.id in user_group_ids:
-            return Response({'allowed': True})
-
-    return Response({'allowed': False})
+    return Response({'allowed': user.hasGroups(*required_groups)})
 
 
 class RemoveConnectionConfirmView(LoginRequiredView):

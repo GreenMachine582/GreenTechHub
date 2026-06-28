@@ -25,6 +25,7 @@
   <div class="row g-4">
 
     {# Left: Summary card #}
+    {% partialdef profile-summary inline %}
     <div class="col-lg-4">
       <div class="card">
         <div class="card-body text-center p-4">
@@ -55,6 +56,7 @@
       </div>
 
       {# Connected social accounts #}
+      {% partialdef connected-accounts inline %}
       <div class="card">
         <div class="card-header">
           <strong>Connected Accounts</strong>
@@ -76,7 +78,7 @@
                       <span class="text-capitalize">{{ acc.name }}</span>
                     </span>
 
-                    {% if accounts|length == 1 and not request.user.has_usable_password %}
+                    {% if forloop.length == 1 and not request.user.has_usable_password %}
                       <button type="button"
                               class="btn btn-sm btn-outline-secondary"
                               title="Add a password or another social account before removing your only login method"
@@ -86,7 +88,7 @@
                     {% else %}
                       <button type="button"
                               class="btn btn-sm btn-outline-danger js-modal"
-                              data-form-url="{% url 'users-delete-connection-confirm' acc.pk %}">
+                              data-form-url="{% url ‘users-delete-connection-confirm’ acc.pk %}">
                         Remove
                       </button>
                     {% endif %}
@@ -114,7 +116,7 @@
               </button>
             {% else %}
               <a class="btn btn-sm btn-outline-primary"
-                 href="{% provider_login_url 'google' process='connect' next=request.path %}">
+                 href="{% provider_login_url ‘google’ process=’connect’ next=request.path %}">
                 <i class="fab fa-google me-1"></i> Connect Google
               </a>
             {% endif %}
@@ -125,7 +127,7 @@
               </button>
             {% else %}
               <a class="btn btn-sm btn-outline-dark"
-                 href="{% provider_login_url 'github' process='connect' next=request.path %}">
+                 href="{% provider_login_url ‘github’ process=’connect’ next=request.path %}">
                 <i class="fab fa-github me-1"></i> Connect GitHub
               </a>
             {% endif %}
@@ -133,9 +135,12 @@
           </div>
         </div>
       </div>
+      {% endpartialdef %}
     </div>
+    {% endpartialdef %}
 
     {# Right: Edit form #}
+    {% partialdef profile-form inline %}
     <div class="col-lg-8">
       <div class="card">
         <div class="card-header">
@@ -174,7 +179,9 @@
         If you remove your uploaded avatar and have a linked provider (Google/GitHub), we’ll fall back to the provider’s profile photo.
       </div>
     </div>
+    {% endpartialdef %}
 
+    {% partialdef manage-account inline %}
     <div class="col-lg-8">
       <div class="card">
         <div class="card-header">
@@ -184,23 +191,23 @@
           {% if request.user.has_usable_password %}
             <button type="button"
                     class="btn btn-outline-primary js-modal"
-                    data-form-url="{% url 'password-change-modal' %}">
+                    data-form-url="{% url ‘password-change-modal’ %}">
               <i class="fas fa-key me-1"></i> Change password
             </button>
             <button type="button"
                     class="btn btn-outline-secondary js-modal"
-                    data-form-url="{% url 'password-reset-modal' %}">
+                    data-form-url="{% url ‘password-reset-modal’ %}">
               <i class="fas fa-envelope me-1"></i> Email a reset link
             </button>
           {% else %}
             <button type="button"
                     class="btn btn-outline-primary js-modal"
-                    data-form-url="{% url 'password-set-modal' %}">
+                    data-form-url="{% url ‘password-set-modal’ %}">
               <i class="fas fa-key me-1"></i> Set password
             </button>
             <button type="button"
                     class="btn btn-outline-secondary js-modal"
-                    data-form-url="{% url 'password-reset-modal' %}">
+                    data-form-url="{% url ‘password-reset-modal’ %}">
               <i class="fas fa-envelope me-1"></i> Email a set-password link
             </button>
             <div class="form-text mt-2">
@@ -212,12 +219,13 @@
 
           <button type="button"
                   class="btn btn-danger js-modal"
-                  data-form-url="{% url 'users-delete-account' %}">
+                  data-form-url="{% url ‘users-delete-account’ %}">
             <i class="fas fa-trash-can me-1"></i> Delete my account
           </button>
         </div>
       </div>
     </div>
+    {% endpartialdef %}
   </div>
 </section>
 

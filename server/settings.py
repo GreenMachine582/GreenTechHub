@@ -178,6 +178,7 @@ ACCOUNT_FORMS = {
 if os.getenv("ENVIRONMENT", "production") == "production":
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    ALLAUTH_TRUSTED_PROXY_COUNT = 1  # Cloudflare Tunnel is the one upstream proxy
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
